@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cookie Clicker</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8B4513">
+    <style>
+        * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+:root {
+    --bg-color: #F5DEB3;
+    --text-color: #2C1810;
+    --cookie-color: #CD853F;
+    --cookie-dark: #8B4513;
+    --accent-gold: #FFD700;
+    --accent-green: #228B22;
+    --shop-bg: #FFF8DC;
+    --upgrade-bg: #FAEBD7;
+    --upgrade-hover: #FFE4C4;
+    --upgrade-affordable: #90EE90;
+}
+
+body.dark-mode {
+    --bg-color: #2C1810;
+    --text-color: #F5DEB3;
+    --cookie-color: #8B4513;
+    --cookie-dark: #CD853F;
+    --shop-bg: #3D2817;
+    --upgrade-bg: #4A3728;
+    --upgrade-hover: #5A4530;
+    --upgrade-affordable: #2E8B57;
+}
+
+body {
+    font-family: 'Georgia', serif;
+    background: var(--bg-color);
+    color: var(--text-color);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    transition: background 0.3s, color 0.3s;
+}
+
+header {
+    text-align: center;
+    padding: 20px;
+    background: linear-gradient(135deg, var(--cookie-dark), var(--cookie-color));
+    color: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+header h1 {
+    font-size: 2rem;
+    margin-bottom: 10px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+#stats {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    font-size: 1.2rem;
+}
+
+.stat {
+    background: rgba(255,255,255,0.2);
+    padding: 10px 20px;
+    border-radius: 20px;
+}
+
+main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 20px;
+    gap: 30px;
+}
+
+@media (min-width: 768px) {
+    main {
+        flex-direction: row;
+        justify-content: center;
+        align-items: flex-start;
+    }
+}
+
+#cookie-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+}
+
+#cookie {
+    font-size: 200px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.1s ease-out;
+    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+    position: relative;
+    z-index: 1;
+}
+
+#cookie:hover {
+    transform: scale(1.05);
+}
+
+#cookie:active {
+    transform: scale(0.95);
+}
+
+#cookie.wobble {
+    animation: wobble 0.3s ease-in-out;
+}
+
+@keyframes wobble {
+    0%, 100% { transform: rotate(0deg); }
+    25% { transform: rotate(-5deg); }
+    75% { transform: rotate(5deg); }
+}
+
+#floating-text-container {
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    pointer-events: none;
+}
+
+.floating-text {
+    position: absolute;
+    font-size: 24px;
+    font-weight: bold;
+    color: var(--accent-gold);
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    animation: float-up 1s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes float-up {
+    0% { opacity: 1; transform: translateY(0) scale(1); }
+    100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+}
+
+#shop {
+    width: 100%;
+    max-width: 400px;
+    background: var(--shop-bg);
+    border-radius: 15px;
+    padding: 20px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+#shop h2 {
+    text-align: center;
+    margin-bottom: 15px;
+    color: var(--cookie-dark);
+}
+
+.upgrade {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    margin-bottom: 10px;
+    background: var(--upgrade-bg);
+    border-radius: 10px;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: 2px solid transparent;
+}
+
+.upgrade:hover {
+    background: var(--upgrade-hover);
+    transform: translateX(5px);
+}
+
+.upgrade.affordable {
+    border-color: var(--accent-green);
+    background: var(--upgrade-affordable);
+}
+
+.upgrade.affordable:hover {
+    box-shadow: 0 0 15px rgba(34, 139, 34, 0.5);
+}
+
+.upgrade.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.upgrade-info {
+    flex: 1;
+}
+
+.upgrade-name {
+    font-weight: bold;
+    font-size: 1.1rem;
+}
+
+.upgrade-cost {
+    color: var(--cookie-dark);
+    font-size: 0.9rem;
+}
+
+.upgrade-owned {
+    font-size: 1.5rem;
+    font-weight: bold;
+    min-width: 40px;
+    text-align: center;
+}
+
+footer {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+    background: var(--cookie-dark);
+}
+
+button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 25px;
+    background: var(--accent-gold);
+    color: var(--text-color);
+    font-size: 1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: var(--bg-color);
+    padding: 30px;
+    border-radius: 15px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.modal-content h2 {
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+.modal-content label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+    font-size: 1.1rem;
+    cursor: pointer;
+}
+
+.modal-content input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+}
+
+.modal-content button {
+    width: 100%;
+    margin-top: 15px;
+}
+
+#reset-btn {
+    background: #DC143C;
+    color: white;
+}
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header>
+            <h1>🍪 Cookie Clicker</h1>
+            <div id="stats">
+                <div class="stat">Cookies: <span id="cookie-count">0</span></div>
+                <div class="stat">Per second: <span id="cps">0</span></div>
+            </div>
+        </header>
+        
+        <main>
+            <section id="cookie-section">
+                <div id="cookie" role="button" aria-label="Click the cookie">
+                    🍪
+                </div>
+                <div id="floating-text-container"></div>
+            </section>
+            
+            <section id="shop">
+                <h2>Shop</h2>
+                <div id="upgrades"></div>
+            </section>
+        </main>
+        
+        <footer>
+            <button id="settings-btn">⚙️ Settings</button>
+            <button id="install-btn" style="display: none;">📱 Install App</button>
+        </footer>
+    </div>
+    
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>Settings</h2>
+            <label>
+                <input type="checkbox" id="sound-toggle" checked>
+                Sound Effects
+            </label>
+            <label>
+                <input type="checkbox" id="dark-mode-toggle">
+                Dark Mode
+            </label>
+            <button id="reset-btn">🔄 Reset Game</button>
+            <button id="close-settings">Close</button>
+        </div>
+    </div>
+    
+    <script>
+        // Game State
+const game = {
+    cookies: 0,
+    totalCookies: 0,
+    clicks: 0,
+    startTime: Date.now(),
+    lastSave: Date.now(),
+    clickPower: 1,
+    upgrades: {
+        cursor: { owned: 0, baseCost: 15, baseCps: 0.1, name: 'Cursor', icon: '🖱️' },
+        grandma: { owned: 0, baseCost: 100, baseCps: 1, name: 'Grandma', icon: '👵' },
+        farm: { owned: 0, baseCost: 1100, baseCps: 8, name: 'Farm', icon: '🚜' },
+        mine: { owned: 0, baseCost: 12000, baseCps: 47, name: 'Mine', icon: '⛏️' },
+        factory: { owned: 0, baseCost: 130000, baseCps: 260, name: 'Factory', icon: '🏭' }
+    },
+    settings: {
+        soundEnabled: true,
+        darkMode: false
+    }
+};
+
+// Audio Context for sound effects
+let audioContext = null;
+
+function initAudio() {
+    if (!audioContext) {
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    }
+}
+
+function playClickSound() {
+    if (!game.settings.soundEnabled || !audioContext) return;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
+    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.1);
+}
+
+function playBuySound() {
+    if (!game.settings.soundEnabled || !audioContext) return;
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.15);
+    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
+    oscillator.start(audioContext.currentTime);
+    oscillator.stop(audioContext.currentTime + 0.15);
+}
+
+// DOM Elements
+const cookieEl = document.getElementById('cookie');
+const cookieCountEl = document.getElementById('cookie-count');
+const cpsEl = document.getElementById('cps');
+const upgradesEl = document.getElementById('upgrades');
+const floatingTextContainer = document.getElementById('floating-text-container');
+const settingsModal = document.getElementById('settings-modal');
+const installBtn = document.getElementById('install-btn');
+
+// Helper functions
+function formatNumber(num) {
+    if (num < 1000) return Math.floor(num).toString();
+    if (num < 1000000) return (num / 1000).toFixed(1) + 'K';
+    if (num < 1000000000) return (num / 1000000).toFixed(1) + 'M';
+    if (num < 1000000000000) return (num / 1000000000).toFixed(1) + 'B';
+    return (num / 1000000000000).toFixed(1) + 'T';
+}
+
+function getUpgradeCost(upgradeKey) {
+    const upgrade = game.upgrades[upgradeKey];
+    return Math.floor(upgrade.baseCost * Math.pow(1.15, upgrade.owned));
+}
+
+function getTotalCps() {
+    let cps = 0;
+    for (const key in game.upgrades) {
+        cps += game.upgrades[key].owned * game.upgrades[key].baseCps;
+    }
+    return cps;
+}
+
+// Cookie click handler
+function clickCookie(e) {
+    initAudio();
+    playClickSound();
+    game.cookies += game.clickPower;
+    game.totalCookies += game.clickPower;
+    game.clicks++;
+    cookieEl.classList.add('wobble');
+    setTimeout(() => cookieEl.classList.remove('wobble'), 300);
+    const floatEl = document.createElement('div');
+    floatEl.className = 'floating-text';
+    floatEl.textContent = '+' + formatNumber(game.clickPower);
+    floatEl.style.left = (e ? e.offsetX : 100) + 'px';
+    floatEl.style.top = (e ? e.offsetY : 100) + 'px';
+    floatingTextContainer.appendChild(floatEl);
+    setTimeout(() => floatEl.remove(), 1000);
+    updateDisplay();
+}
+
+cookieEl.addEventListener('click', clickCookie);
+
+// Render upgrades
+function renderUpgrades() {
+    upgradesEl.innerHTML = '';
+    for (const [key, upgrade] of Object.entries(game.upgrades)) {
+        const cost = getUpgradeCost(key);
+        const affordable = game.cookies >= cost;
+        const upgradeEl = document.createElement('div');
+        upgradeEl.className = `upgrade ${affordable ? 'affordable' : 'disabled'}`;
+        upgradeEl.innerHTML = `
+            <div class="upgrade-icon">${upgrade.icon}</div>
+            <div class="upgrade-info">
+                <div class="upgrade-name">${upgrade.name}</div>
+                <div class="upgrade-cost">Cost: ${formatNumber(cost)} cookies</div>
+                <div class="upgrade-cps">+${upgrade.baseCps} CPS</div>
+            </div>
+            <div class="upgrade-owned">${upgrade.owned}</div>
+        `;
+        upgradeEl.addEventListener('click', () => buyUpgrade(key));
+        upgradesEl.appendChild(upgradeEl);
+    }
+}
+
+// Buy upgrade
+function buyUpgrade(key) {
+    initAudio();
+    const cost = getUpgradeCost(key);
+    if (game.cookies >= cost) {
+        game.cookies -= cost;
+        game.upgrades[key].owned++;
+        playBuySound();
+        updateDisplay();
+    }
+}
+
+// Update display
+function updateDisplay() {
+    cookieCountEl.textContent = formatNumber(Math.floor(game.cookies));
+    cpsEl.textContent = formatNumber(getTotalCps());
+    renderUpgrades();
+}
+
+// Game loop
+setInterval(() => {
+    const cps = getTotalCps();
+    game.cookies += cps / 10;
+    game.totalCookies += cps / 10;
+    updateDisplay();
+}, 100);
+
+// Auto-save every 5 seconds
+setInterval(() => { saveGame(); }, 5000);
+
+// Save game
+function saveGame() {
+    game.lastSave = Date.now();
+    try {
+        localStorage.setItem('cookieClickerSave', JSON.stringify(game));
+    } catch (e) {
+        console.warn('Could not save game:', e);
+    }
+}
+
+// Load game
+function loadGame() {
+    try {
+        const save = localStorage.getItem('cookieClickerSave');
+        if (save) {
+            const parsed = JSON.parse(save);
+            Object.assign(game, parsed);
+            const offline = (Date.now() - game.lastSave) / 1000;
+            const offlineCps = getTotalCps();
+            const offlineCookies = offlineCps * offline * 0.5;
+            game.cookies += offlineCookies;
+            game.totalCookies += offlineCookies;
+        }
+    } catch (e) {
+        console.warn('Could not load game:', e);
+    }
+    if (game.settings.darkMode) {
+        document.body.classList.add('dark-mode');
+        document.getElementById('dark-mode-toggle').checked = true;
+    }
+    document.getElementById('sound-toggle').checked = game.settings.soundEnabled;
+    updateDisplay();
+}
+
+// Reset game
+function resetGame() {
+    if (confirm('Are you sure you want to reset all progress? This cannot be undone!')) {
+        localStorage.removeItem('cookieClickerSave');
+        location.reload();
+    }
+}
+
+// Settings modal
+document.getElementById('settings-btn').addEventListener('click', () => {
+    settingsModal.classList.remove('hidden');
+});
+
+document.getElementById('close-settings').addEventListener('click', () => {
+    settingsModal.classList.add('hidden');
+});
+
+settingsModal.addEventListener('click', (e) => {
+    if (e.target === settingsModal) {
+        settingsModal.classList.add('hidden');
+    }
+});
+
+document.getElementById('reset-btn').addEventListener('click', () => {
+    resetGame();
+    settingsModal.classList.add('hidden');
+});
+
+document.getElementById('sound-toggle').addEventListener('change', (e) => {
+    game.settings.soundEnabled = e.target.checked;
+    saveGame();
+});
+
+document.getElementById('dark-mode-toggle').addEventListener('change', (e) => {
+    game.settings.darkMode = e.target.checked;
+    document.body.classList.toggle('dark-mode', e.target.checked);
+    saveGame();
+});
+
+// PWA Install
+let deferredPrompt = null;
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    installBtn.style.display = 'block';
+});
+
+installBtn.addEventListener('click', async () => {
+    if (deferredPrompt) {
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            installBtn.style.display = 'none';
+        }
+        deferredPrompt = null;
+    }
+});
+
+// Service Worker registration
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('SW registered:', reg))
+        .catch(err => console.log('SW registration failed:', err));
+}
+
+// Save on page unload
+window.addEventListener('beforeunload', () => { saveGame(); });
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => { loadGame(); });
+    </script>
+</body>
+</html>
