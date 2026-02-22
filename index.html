@@ -746,7 +746,7 @@
     
     <script>
 // ============================================
-// COOKIE CLICKER ENHANCED EDITION
+// COOKIECLICKER ENHANCED EDITION
 // ============================================
 
 // Game State
@@ -965,6 +965,9 @@ function createParticles(x, y, count = 5, type = 'cookie') {
 
 // Cookie Click Handler
 function clickCookie(e) {
+    // Prevent default to avoid double-firing on touch devices
+    if (e) e.preventDefault();
+    
     initAudio();
     playClickSound();
     
@@ -981,7 +984,9 @@ function clickCookie(e) {
     triggerScreenShake(clickValue >= 100 ? 'big' : 'normal');
     
     if (e) {
-        createParticles(e.clientX, e.clientY, 5 + Math.floor(Math.log10(clickValue + 1)));
+        const clientX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+        const clientY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+        createParticles(clientX, clientY, 5 + Math.floor(Math.log10(clickValue + 1)));
     }
     
     // Floating text
@@ -989,8 +994,8 @@ function clickCookie(e) {
     floatEl.className = 'floating-text';
     floatEl.textContent = '+' + formatNumber(clickValue);
     floatEl.style.fontSize = Math.min(24 + Math.log10(clickValue) * 3, 48) + 'px';
-    floatEl.style.left = (e ? e.offsetX : 100) + 'px';
-    floatEl.style.top = (e ? e.offsetY : 100) + 'px';
+    floatEl.style.left = (e && e.offsetX ? e.offsetX : 100) + 'px';
+    floatEl.style.top = (e && e.offsetY ? e.offsetY : 100) + 'px';
     floatingTextContainer.appendChild(floatEl);
     setTimeout(() => floatEl.remove(), 1000);
     
@@ -998,7 +1003,10 @@ function clickCookie(e) {
     updateDisplay();
 }
 
-cookieEl.addEventListener('click', clickCookie);
+// Remove old event listener and add both click and touch support
+cookieEl.removeEventListener('click', clickCookie);
+cookieEl.addEventListener('click', clickCookie, { passive: false });
+cookieEl.addEventListener('touchstart', clickCookie, { passive: false });
 
 // Golden Cookie System
 function spawnGoldenCookie() {
@@ -1155,27 +1163,53 @@ function showMilestone(title, desc) {
     setTimeout(() => banner.classList.remove('show'), 3000);
 }
 
-// Shop Rendering
+// Shop Rendering with event delegation
 function renderUpgrades() {
-    upgradesEl.innerHTML = '';
+    // Only re-render if needed - check if costs have changed
+    const currentHtml = upgradesEl.innerHTML;
+    let newHtml = '';
+    
     for (const [key, upgrade] of Object.entries(game.upgrades)) {
         const cost = getUpgradeCost(key);
         const affordable = game.cookies >= cost;
-        const upgradeEl = document.createElement('div');
-        upgradeEl.className = `upgrade ${affordable ? 'affordable' : 'disabled'}`;
-        upgradeEl.innerHTML = `
-            <div style="font-size:2rem;">${upgrade.icon}</div>
-            <div class="upgrade-info">
-                <div class="upgrade-name">${upgrade.name}</div>
-                <div class="upgrade-cost">Cost: ${formatNumber(cost)} cookies</div>
-                <div style="font-size:0.85rem;opacity:0.8;">+${formatNumber(upgrade.baseCps)} CPS</div>
+        newHtml += `
+            <div class="upgrade ${affordable ? 'affordable' : 'disabled'}" data-upgrade="${key}">
+                <div style="font-size:2rem;">${upgrade.icon}</div>
+                <div class="upgrade-info">
+                    <div class="upgrade-name">${upgrade.name}</div>
+                    <div class="upgrade-cost">Cost: ${formatNumber(cost)} cookies</div>
+                    <div style="font-size:0.85rem;opacity:0.8;">+${formatNumber(upgrade.baseCps)} CPS</div>
+                </div>
+                <div class="upgrade-owned">${upgrade.owned}</div>
             </div>
-            <div class="upgrade-owned">${upgrade.owned}</div>
         `;
-        upgradeEl.addEventListener('click', () => buyUpgrade(key));
-        upgradesEl.appendChild(upgradeEl);
+    }
+    
+    // Only update DOM if content has changed
+    if (currentHtml !== newHtml) {
+        upgradesEl.innerHTML = newHtml;
     }
 }
+
+// Add event delegation for upgrades
+upgradesEl.addEventListener('click', (e) => {
+    const upgradeEl = e.target.closest('.upgrade');
+    if (upgradeEl) {
+        const key = upgradeEl.dataset.upgrade;
+        if (key) buyUpgrade(key);
+    }
+});
+
+upgradesEl.addEventListener('touchstart', (e) => {
+    const upgradeEl = e.target.closest('.upgrade');
+    if (upgradeEl) {
+        const key = upgradeEl.dataset.upgrade;
+        if (key) {
+            e.preventDefault();
+            buyUpgrade(key);
+        }
+    }
+}, { passive: false });
 
 function buyUpgrade(key) {
     initAudio();
@@ -1356,6 +1390,9 @@ function showStats() {
 }
 
 // Update Display
+let lastCps = 0;
+let lastCookies = -1;
+
 function updateDisplay() {
     const cps = getTotalCps();
     cookieCountEl.textContent = formatNumber(Math.floor(game.cookies));
@@ -1370,7 +1407,12 @@ function updateDisplay() {
         multiplierDisplay.textContent = '';
     }
     
-    renderUpgrades();
+    // Only re-render upgrades if cookies changed (costs might have become affordable)
+    if (Math.floor(game.cookies) !== lastCookies) {
+        lastCookies = Math.floor(game.cookies);
+        renderUpgrades();
+    }
+    
     updatePrestigeDisplay();
     initGarden();
 }
