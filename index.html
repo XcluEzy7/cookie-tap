@@ -3,343 +3,714 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cookie Clicker</title>
+    <title>Cookie Clicker - Enhanced Edition</title>
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8B4513">
     <style>
-        * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --bg-color: linear-gradient(135deg, #F5DEB3 0%, #DEB887 100%);
+            --text-color: #2C1810;
+            --cookie-color: #CD853F;
+            --cookie-dark: #8B4513;
+            --accent-gold: #FFD700;
+            --accent-green: #228B22;
+            --accent-red: #DC143C;
+            --shop-bg: rgba(255, 248, 220, 0.95);
+            --upgrade-bg: #FAEBD7;
+            --upgrade-hover: #FFE4C4;
+            --upgrade-affordable: #90EE90;
+            --panel-bg: rgba(44, 24, 16, 0.9);
+            --heavenly: #9370DB;
+        }
 
-:root {
-    --bg-color: #F5DEB3;
-    --text-color: #2C1810;
-    --cookie-color: #CD853F;
-    --cookie-dark: #8B4513;
-    --accent-gold: #FFD700;
-    --accent-green: #228B22;
-    --shop-bg: #FFF8DC;
-    --upgrade-bg: #FAEBD7;
-    --upgrade-hover: #FFE4C4;
-    --upgrade-affordable: #90EE90;
-}
+        body.dark-mode {
+            --bg-color: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            --text-color: #E0E0E0;
+            --cookie-color: #8B4513;
+            --cookie-dark: #CD853F;
+            --shop-bg: rgba(30, 30, 40, 0.95);
+            --upgrade-bg: #2D3748;
+            --upgrade-hover: #4A5568;
+            --upgrade-affordable: #2E8B57;
+            --panel-bg: rgba(0, 0, 0, 0.9);
+        }
 
-body.dark-mode {
-    --bg-color: #2C1810;
-    --text-color: #F5DEB3;
-    --cookie-color: #8B4513;
-    --cookie-dark: #CD853F;
-    --shop-bg: #3D2817;
-    --upgrade-bg: #4A3728;
-    --upgrade-hover: #5A4530;
-    --upgrade-affordable: #2E8B57;
-}
+        body {
+            font-family: 'Georgia', serif;
+            background: var(--bg-color);
+            color: var(--text-color);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            transition: background 0.3s, color 0.3s;
+            overflow-x: hidden;
+        }
 
-body {
-    font-family: 'Georgia', serif;
-    background: var(--bg-color);
-    color: var(--text-color);
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    transition: background 0.3s, color 0.3s;
-}
+        /* Screen Shake Animation */
+        @keyframes shake {
+            0%, 100% { transform: translate(0, 0); }
+            10% { transform: translate(-2px, -2px); }
+            20% { transform: translate(2px, 2px); }
+            30% { transform: translate(-2px, 2px); }
+            40% { transform: translate(2px, -2px); }
+            50% { transform: translate(-1px, 1px); }
+            60% { transform: translate(1px, -1px); }
+            70% { transform: translate(-1px, -1px); }
+            80% { transform: translate(1px, 1px); }
+            90% { transform: translate(-1px, 0px); }
+        }
 
-header {
-    text-align: center;
-    padding: 20px;
-    background: linear-gradient(135deg, var(--cookie-dark), var(--cookie-color));
-    color: white;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
-}
+        .screen-shake { animation: shake 0.3s ease-out; }
+        .screen-shake-big { animation: shake 0.5s ease-out; }
 
-header h1 {
-    font-size: 2rem;
-    margin-bottom: 10px;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-}
+        /* News Ticker */
+        #news-ticker {
+            background: var(--cookie-dark);
+            color: #FFD700;
+            padding: 8px 0;
+            overflow: hidden;
+            white-space: nowrap;
+            font-style: italic;
+            font-size: 0.95rem;
+        }
 
-#stats {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    font-size: 1.2rem;
-}
+        #news-content {
+            display: inline-block;
+            animation: ticker 30s linear infinite;
+        }
 
-.stat {
-    background: rgba(255,255,255,0.2);
-    padding: 10px 20px;
-    border-radius: 20px;
-}
+        @keyframes ticker {
+            0% { transform: translateX(100vw); }
+            100% { transform: translateX(-100%); }
+        }
 
-main {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-    gap: 30px;
-}
+        /* Achievement Popup */
+        .achievement-popup {
+            position: fixed;
+            top: 20px;
+            right: -400px;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #2C1810;
+            padding: 15px 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            z-index: 2000;
+            transition: right 0.5s ease-out;
+            max-width: 350px;
+        }
 
-@media (min-width: 768px) {
-    main {
-        flex-direction: row;
-        justify-content: center;
-        align-items: flex-start;
-    }
-}
+        .achievement-popup.show { right: 20px; }
+        .achievement-popup h4 { margin-bottom: 5px; font-size: 1.1rem; }
+        .achievement-popup p { font-size: 0.9rem; margin: 0; }
 
-#cookie-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-}
+        /* Golden Cookie */
+        .golden-cookie {
+            position: fixed;
+            width: 80px;
+            height: 80px;
+            background: radial-gradient(circle at 30% 30%, #FFD700, #FFA500);
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 1000;
+            animation: golden-pulse 1s ease-in-out infinite, golden-float 3s ease-in-out infinite;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 40px;
+        }
 
-#cookie {
-    font-size: 200px;
-    cursor: pointer;
-    user-select: none;
-    transition: transform 0.1s ease-out;
-    filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
-    position: relative;
-    z-index: 1;
-}
+        @keyframes golden-pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 30px rgba(255, 215, 0, 0.8); }
+            50% { transform: scale(1.1); box-shadow: 0 0 50px rgba(255, 215, 0, 1); }
+        }
 
-#cookie:hover {
-    transform: scale(1.05);
-}
+        @keyframes golden-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
 
-#cookie:active {
-    transform: scale(0.95);
-}
+        /* Golden Cookie Notification */
+        .golden-notification {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #2C1810;
+            padding: 30px 50px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 3000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transition: transform 0.3s ease-out;
+        }
 
-#cookie.wobble {
-    animation: wobble 0.3s ease-in-out;
-}
+        .golden-notification.show { transform: translate(-50%, -50%) scale(1); }
+        .golden-notification h2 { font-size: 2rem; margin-bottom: 10px; }
+        .golden-notification p { font-size: 1.2rem; }
 
-@keyframes wobble {
-    0%, 100% { transform: rotate(0deg); }
-    25% { transform: rotate(-5deg); }
-    75% { transform: rotate(5deg); }
-}
+        /* Particles */
+        .particle {
+            position: absolute;
+            pointer-events: none;
+            animation: particle-fly 0.8s ease-out forwards;
+        }
 
-#floating-text-container {
-    position: absolute;
-    top: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    pointer-events: none;
-}
+        @keyframes particle-fly {
+            0% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--tx), var(--ty)) scale(0.5); }
+        }
 
-.floating-text {
-    position: absolute;
-    font-size: 24px;
-    font-weight: bold;
-    color: var(--accent-gold);
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    animation: float-up 1s ease-out forwards;
-    pointer-events: none;
-}
+        /* Event Banner */
+        .event-banner {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%) scale(0);
+            background: linear-gradient(135deg, #FF6B6B, #DC143C);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            z-index: 1500;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease-out;
+            text-align: center;
+        }
 
-@keyframes float-up {
-    0% { opacity: 1; transform: translateY(0) scale(1); }
-    100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
-}
+        .event-banner.show { transform: translateX(-50%) scale(1); }
 
-#shop {
-    width: 100%;
-    max-width: 400px;
-    background: var(--shop-bg);
-    border-radius: 15px;
-    padding: 20px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-}
+        /* Prestige Section */
+        #prestige-section {
+            background: linear-gradient(135deg, #4B0082, #9370DB);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            border-radius: 15px;
+            margin: 10px 0;
+            display: none;
+        }
 
-#shop h2 {
-    text-align: center;
-    margin-bottom: 15px;
-    color: var(--cookie-dark);
-}
+        #prestige-section.available { display: block; }
 
-.upgrade {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 15px;
-    margin-bottom: 10px;
-    background: var(--upgrade-bg);
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-    border: 2px solid transparent;
-}
+        #heavenly-chips {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #FFD700;
+        }
 
-.upgrade:hover {
-    background: var(--upgrade-hover);
-    transform: translateX(5px);
-}
+        /* Main Layout */
+        header {
+            text-align: center;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--cookie-dark), var(--cookie-color));
+            color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
 
-.upgrade.affordable {
-    border-color: var(--accent-green);
-    background: var(--upgrade-affordable);
-}
+        header h1 {
+            font-size: 2rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
 
-.upgrade.affordable:hover {
-    box-shadow: 0 0 15px rgba(34, 139, 34, 0.5);
-}
+        #stats {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 1.2rem;
+            flex-wrap: wrap;
+        }
 
-.upgrade.disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
+        .stat {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 20px;
+        }
 
-.upgrade-info {
-    flex: 1;
-}
+        .stat.heavenly { background: rgba(147, 112, 219, 0.5); }
 
-.upgrade-name {
-    font-weight: bold;
-    font-size: 1.1rem;
-}
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            gap: 20px;
+        }
 
-.upgrade-cost {
-    color: var(--cookie-dark);
-    font-size: 0.9rem;
-}
+        @media (min-width: 768px) {
+            main { flex-direction: row; justify-content: center; align-items: flex-start; }
+        }
 
-.upgrade-owned {
-    font-size: 1.5rem;
-    font-weight: bold;
-    min-width: 40px;
-    text-align: center;
-}
+        #cookie-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            max-width: 400px;
+        }
 
-footer {
-    display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 20px;
-    background: var(--cookie-dark);
-}
+        #cookie {
+            font-size: 200px;
+            cursor: pointer;
+            user-select: none;
+            transition: transform 0.1s ease-out;
+            filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
+            position: relative;
+            z-index: 1;
+        }
 
-button {
-    padding: 12px 24px;
-    border: none;
-    border-radius: 25px;
-    background: var(--accent-gold);
-    color: var(--text-color);
-    font-size: 1rem;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-}
+        #cookie:hover { transform: scale(1.05); }
+        #cookie:active { transform: scale(0.95); }
 
-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 15px rgba(0,0,0,0.3);
-}
+        #cookie.wobble { animation: wobble 0.3s ease-in-out; }
 
-button:active {
-    transform: translateY(0);
-}
+        @keyframes wobble {
+            0%, 100% { transform: rotate(0deg); }
+            25% { transform: rotate(-5deg); }
+            75% { transform: rotate(5deg); }
+        }
 
-.modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.5);
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 1000;
-}
+        #floating-text-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+        }
 
-.modal.hidden {
-    display: none;
-}
+        .floating-text {
+            position: absolute;
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--accent-gold);
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+            animation: float-up 1s ease-out forwards;
+            pointer-events: none;
+            white-space: nowrap;
+        }
 
-.modal-content {
-    background: var(--bg-color);
-    padding: 30px;
-    border-radius: 15px;
-    max-width: 400px;
-    width: 90%;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-}
+        @keyframes float-up {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-100px) scale(1.5); }
+        }
 
-.modal-content h2 {
-    margin-bottom: 20px;
-    text-align: center;
-}
+        #shop {
+            width: 100%;
+            max-width: 400px;
+            background: var(--shop-bg);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
 
-.modal-content label {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 15px;
-    font-size: 1.1rem;
-    cursor: pointer;
-}
+        #shop h2 {
+            text-align: center;
+            margin-bottom: 15px;
+            color: var(--cookie-dark);
+        }
 
-.modal-content input[type="checkbox"] {
-    width: 20px;
-    height: 20px;
-}
+        .shop-tabs {
+            display: flex;
+            gap: 5px;
+            margin-bottom: 15px;
+        }
 
-.modal-content button {
-    width: 100%;
-    margin-top: 15px;
-}
+        .shop-tab {
+            flex: 1;
+            padding: 10px;
+            background: var(--upgrade-bg);
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
 
-#reset-btn {
-    background: #DC143C;
-    color: white;
-}
+        .shop-tab.active {
+            background: var(--cookie-dark);
+            color: white;
+        }
+
+        .shop-panel { display: none; }
+        .shop-panel.active { display: block; }
+
+        .upgrade {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: var(--upgrade-bg);
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .upgrade:hover {
+            background: var(--upgrade-hover);
+            transform: translateX(5px);
+        }
+
+        .upgrade.affordable {
+            border-color: var(--accent-green);
+            background: var(--upgrade-affordable);
+        }
+
+        .upgrade.affordable:hover {
+            box-shadow: 0 0 15px rgba(34, 139, 34, 0.5);
+        }
+
+        .upgrade.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .upgrade-info { flex: 1; }
+        .upgrade-name { font-weight: bold; font-size: 1.1rem; }
+        .upgrade-cost { color: var(--cookie-dark); font-size: 0.9rem; }
+        .upgrade-owned { font-size: 1.5rem; font-weight: bold; min-width: 40px; text-align: center; }
+
+        /* Achievements Panel */
+        .achievement {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            margin-bottom: 8px;
+            background: var(--upgrade-bg);
+            border-radius: 8px;
+            opacity: 0.5;
+        }
+
+        .achievement.unlocked {
+            opacity: 1;
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #2C1810;
+        }
+
+        .achievement-icon { font-size: 1.5rem; }
+        .achievement-info { flex: 1; }
+        .achievement-name { font-weight: bold; }
+        .achievement-desc { font-size: 0.85rem; }
+
+        /* Garden Panel */
+        #garden-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .garden-plot {
+            aspect-ratio: 1;
+            background: var(--upgrade-bg);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .garden-plot:hover { border-color: var(--cookie-dark); }
+        .garden-plot.planted { background: #90EE90; }
+
+        /* Corporation Panel */
+        .corporation-section {
+            background: linear-gradient(135deg, #2C3E50, #34495E);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .corporation-section h3 {
+            color: var(--accent-gold);
+            margin-bottom: 10px;
+        }
+
+        footer {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+            background: var(--cookie-dark);
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 25px;
+            background: var(--accent-gold);
+            color: var(--text-color);
+            font-size: 1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+        }
+
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #reset-btn { background: #DC143C; color: white; }
+        #prestige-btn {
+            background: linear-gradient(135deg, #9370DB, #4B0082);
+            color: white;
+            display: none;
+        }
+        #prestige-btn.available { display: inline-block; }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal.hidden { display: none; }
+
+        .modal-content {
+            background: var(--bg-color);
+            padding: 30px;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .modal-content label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+
+        .modal-content input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+        }
+
+        .modal-content button { width: 100%; margin-top: 15px; }
+
+        /* Prestige Tree */
+        .prestige-upgrade {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px;
+            margin-bottom: 10px;
+            background: linear-gradient(135deg, #4B0082, #6A5ACD);
+            color: white;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 2px solid transparent;
+        }
+
+        .prestige-upgrade.affordable { border-color: #FFD700; }
+        .prestige-upgrade.purchased { opacity: 0.5; cursor: default; }
+
+        .prestige-upgrade:hover:not(.purchased) {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(147, 112, 219, 0.5);
+        }
+
+        /* Milestone Banner */
+        .milestone-banner {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #FFD700, #FFA500);
+            color: #2C1810;
+            padding: 40px 60px;
+            border-radius: 20px;
+            text-align: center;
+            z-index: 3000;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            transition: transform 0.5s ease-out;
+        }
+
+        .milestone-banner.show { transform: translate(-50%, -50%) scale(1); }
+        .milestone-banner h2 { font-size: 2.5rem; margin-bottom: 10px; }
+        .milestone-banner p { font-size: 1.3rem; }
+
+        /* Offline Progress Modal */
+        #offline-modal .modal-content {
+            text-align: center;
+        }
+
+        #offline-cookies {
+            font-size: 2rem;
+            color: var(--accent-gold);
+            margin: 20px 0;
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--shop-bg); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb { background: var(--cookie-dark); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--accent-gold); }
     </style>
 </head>
 <body>
+    <!-- Achievement Popup -->
+    <div id="achievement-popup" class="achievement-popup">
+        <h4>🏆 Achievement Unlocked!</h4>
+        <p id="achievement-text"></p>
+    </div>
+
+    <!-- Golden Cookie Notification -->
+    <div id="golden-notification" class="golden-notification">
+        <h2 id="golden-title">Golden Cookie!</h2>
+        <p id="golden-desc"></p>
+    </div>
+
+    <!-- Milestone Banner -->
+    <div id="milestone-banner" class="milestone-banner">
+        <h2 id="milestone-title">Milestone!</h2>
+        <p id="milestone-desc"></p>
+    </div>
+
+    <!-- Event Banner -->
+    <div id="event-banner" class="event-banner"></div>
+
+    <!-- News Ticker -->
+    <div id="news-ticker">
+        <span id="news-content">Welcome to Cookie Clicker! Click the cookie to begin your delicious empire...</span>
+    </div>
+
     <div id="app">
         <header>
-            <h1>🍪 Cookie Clicker</h1>
+            <h1>🍪 Cookie Clicker - Enhanced Edition</h1>
             <div id="stats">
                 <div class="stat">Cookies: <span id="cookie-count">0</span></div>
                 <div class="stat">Per second: <span id="cps">0</span></div>
+                <div class="stat">Clicks: <span id="click-count">0</span></div>
+                <div class="stat heavenly" id="heavenly-stat" style="display:none;">Heavenly Chips: <span id="heavenly-chips-display">0</span></div>
             </div>
         </header>
         
         <main>
             <section id="cookie-section">
-                <div id="cookie" role="button" aria-label="Click the cookie">
-                    🍪
+                <div id="prestige-section">
+                    <div>✨ Ascension Available! ✨</div>
+                    <div>You'll gain <span id="potential-chips">0</span> Heavenly Chips</div>
+                    <button id="ascend-btn" style="margin-top:10px;">Ascend Now</button>
                 </div>
+
+                <div id="cookie" role="button" aria-label="Click the cookie">🍪</div>
                 <div id="floating-text-container"></div>
+                
+                <div style="margin-top:20px; text-align:center;">
+                    <p>Click Power: <span id="click-power">1</span></p>
+                    <p id="multiplier-display" style="color:var(--accent-gold); font-weight:bold;"></p>
+                </div>
             </section>
             
             <section id="shop">
                 <h2>Shop</h2>
-                <div id="upgrades"></div>
+                
+                <div class="shop-tabs">
+                    <button class="shop-tab active" data-tab="buildings">Buildings</button>
+                    <button class="shop-tab" data-tab="achievements">Achievements</button>
+                    <button class="shop-tab" data-tab="garden">Garden</button>
+                    <button class="shop-tab" data-tab="prestige" id="prestige-tab" style="display:none;">Prestige</button>
+                </div>
+
+                <div class="shop-panel active" id="buildings-panel">
+                    <div id="upgrades"></div>
+                </div>
+
+                <div class="shop-panel" id="achievements-panel">
+                    <div id="achievements-list"></div>
+                </div>
+
+                <div class="shop-panel" id="garden-panel">
+                    <div id="garden-unlock" style="text-align:center; padding:20px;">
+                        <p>🔒 Unlock the Cookie Garden at 1,000 cookies</p>
+                    </div>
+                    <div id="garden-content" style="display:none;">
+                        <p style="text-align:center; margin-bottom:10px;">Click plots to plant cookie seeds!</p>
+                        <div id="garden-grid"></div>
+                    </div>
+                </div>
+
+                <div class="shop-panel" id="prestige-panel">
+                    <div id="prestige-upgrades"></div>
+                </div>
             </section>
         </main>
         
         <footer>
             <button id="settings-btn">⚙️ Settings</button>
-            <button id="install-btn" style="display: none;">📱 Install App</button>
+            <button id="stats-btn">📊 Stats</button>
+            <button id="prestige-btn">✨ Ascension</button>
+            <button id="install-btn" style="display:none;">📱 Install</button>
         </footer>
     </div>
+
+    <!-- Offline Progress Modal -->
+    <div id="offline-modal" class="modal">
+        <div class="modal-content">
+            <h2>🌙 While You Were Away...</h2>
+            <p>Your cookie empire continued to grow!</p>
+            <div id="offline-cookies">0</div>
+            <p>cookies were baked while offline</p>
+            <button id="close-offline">Continue</button>
+        </div>
+    </div>
     
+    <!-- Settings Modal -->
     <div id="settings-modal" class="modal hidden">
         <div class="modal-content">
-            <h2>Settings</h2>
+            <h2>⚙️ Settings</h2>
             <label>
                 <input type="checkbox" id="sound-toggle" checked>
                 Sound Effects
+            </label>
+            <label>
+                <input type="checkbox" id="particles-toggle" checked>
+                Particle Effects
+            </label>
+            <label>
+                <input type="checkbox" id="screen-shake-toggle" checked>
+                Screen Shake
             </label>
             <label>
                 <input type="checkbox" id="dark-mode-toggle">
@@ -349,30 +720,163 @@ button:active {
             <button id="close-settings">Close</button>
         </div>
     </div>
+
+    <!-- Stats Modal -->
+    <div id="stats-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>📊 Statistics</h2>
+            <div id="stats-content"></div>
+            <button id="close-stats">Close</button>
+        </div>
+    </div>
+
+    <!-- Prestige Modal -->
+    <div id="prestige-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>✨ Ascension</h2>
+            <p>Reset your progress to gain Heavenly Chips and permanent bonuses!</p>
+            <div style="text-align:center; margin:20px 0;">
+                <p>You'll gain: <span id="modal-potential-chips" style="font-size:2rem; color:var(--heavenly); font-weight:bold;">0</span> Heavenly Chips</p>
+                <p style="font-size:0.9rem; color:#666;">Each chip gives +2% CPS permanently</p>
+            </div>
+            <button id="confirm-prestige">Ascend</button>
+            <button id="cancel-prestige">Cancel</button>
+        </div>
+    </div>
     
     <script>
-        // Game State
+// ============================================
+// COOKIE CLICKER ENHANCED EDITION
+// ============================================
+
+// Game State
 const game = {
     cookies: 0,
     totalCookies: 0,
+    totalCookiesAllTime: 0,
     clicks: 0,
+    clickPower: 1,
     startTime: Date.now(),
     lastSave: Date.now(),
-    clickPower: 1,
+    lastGoldenCookie: 0,
+    
+    // Multipliers
+    globalMultiplier: 1,
+    clickMultiplier: 1,
+    offlineMultiplier: 0.5,
+    
+    // Prestige
+    heavenlyChips: 0,
+    totalHeavenlyChips: 0,
+    prestigeCount: 0,
+    
+    // Buildings
     upgrades: {
         cursor: { owned: 0, baseCost: 15, baseCps: 0.1, name: 'Cursor', icon: '🖱️' },
         grandma: { owned: 0, baseCost: 100, baseCps: 1, name: 'Grandma', icon: '👵' },
         farm: { owned: 0, baseCost: 1100, baseCps: 8, name: 'Farm', icon: '🚜' },
         mine: { owned: 0, baseCost: 12000, baseCps: 47, name: 'Mine', icon: '⛏️' },
-        factory: { owned: 0, baseCost: 130000, baseCps: 260, name: 'Factory', icon: '🏭' }
+        factory: { owned: 0, baseCost: 130000, baseCps: 260, name: 'Factory', icon: '🏭' },
+        bank: { owned: 0, baseCost: 1400000, baseCps: 1400, name: 'Bank', icon: '🏦' },
+        temple: { owned: 0, baseCost: 20000000, baseCps: 7800, name: 'Temple', icon: '🏛️' },
+        wizard: { owned: 0, baseCost: 330000000, baseCps: 44000, name: 'Wizard Tower', icon: '🧙' }
     },
+    
+    // Prestige Upgrades
+    prestigeUpgrades: {
+        heavenlyLuck: { purchased: false, cost: 1, name: 'Heavenly Luck', desc: '+2% CPS per Heavenly Chip', effect: 'cps_bonus' },
+        starterCookies: { purchased: false, cost: 5, name: 'Starter Pack', desc: 'Start with +100 cookies after reset', effect: 'start_cookies' },
+        offlineProduction: { purchased: false, cost: 10, name: 'Time Warper', desc: 'Offline production up to 100%', effect: 'offline_boost' },
+        autoClicker: { purchased: false, cost: 25, name: 'Auto Clicker', desc: 'Automatically clicks once per second', effect: 'auto_click' },
+        buildingDiscount: { purchased: false, cost: 50, name: 'Divine Discount', desc: 'Buildings cost 10% less', effect: 'discount' },
+        goldenFrequenter: { purchased: false, cost: 100, name: 'Golden Touch', desc: 'Golden cookies appear 2x more often', effect: 'golden_boost' }
+    },
+    
+    // Achievements
+    achievements: {
+        // Click achievements
+        firstClick: { unlocked: false, name: 'First Steps', desc: 'Click your first cookie', condition: () => game.clicks >= 1 },
+        clickNovice: { unlocked: false, name: 'Click Apprentice', desc: 'Click 100 times', condition: () => game.clicks >= 100 },
+        clickMaster: { unlocked: false, name: 'Click Master', desc: 'Click 1,000 times', condition: () => game.clicks >= 1000 },
+        clickLegend: { unlocked: false, name: 'Click Legend', desc: 'Click 10,000 times', condition: () => game.clicks >= 10000 },
+        // Cookie achievements
+        firstHundred: { unlocked: false, name: 'Baker', desc: 'Bake 100 cookies', condition: () => game.totalCookies >= 100 },
+        firstThousand: { unlocked: false, name: 'Pastry Chef', desc: 'Bake 1,000 cookies', condition: () => game.totalCookies >= 1000 },
+        firstMillion: { unlocked: false, name: 'Cookie Magnate', desc: 'Bake 1 million cookies', condition: () => game.totalCookies >= 1000000 },
+        firstBillion: { unlocked: false, name: 'Cookie Tycoon', desc: 'Bake 1 billion cookies', condition: () => game.totalCookies >= 1000000000 },
+        firstTrillion: { unlocked: false, name: 'Cookie Emperor', desc: 'Bake 1 trillion cookies', condition: () => game.totalCookies >= 1000000000000 },
+        // Building achievements
+        cursorCollector: { unlocked: false, name: 'Cursor Collector', desc: 'Own 10 cursors', condition: () => game.upgrades.cursor.owned >= 10 },
+        grandmaGatherer: { unlocked: false, name: 'Grandma Gatherer', desc: 'Own 10 grandmas', condition: () => game.upgrades.grandma.owned >= 10 },
+        farmFarmer: { unlocked: false, name: 'Farm Farmer', desc: 'Own 10 farms', condition: () => game.upgrades.farm.owned >= 10 },
+        mineMiner: { unlocked: false, name: 'Mine Miner', desc: 'Own 10 mines', condition: () => game.upgrades.mine.owned >= 10 },
+        // Special achievements
+        goldenClicker: { unlocked: false, name: 'Golden Clicker', desc: 'Click 10 golden cookies', condition: () => game.goldenCookiesClicked >= 10 },
+        firstPrestige: { unlocked: false, name: 'Ascended', desc: 'Prestige for the first time', condition: () => game.prestigeCount >= 1 },
+    },
+    
+    // Garden
+    garden: {
+        unlocked: false,
+        plots: Array(12).fill(null),
+        seeds: 3
+    },
+    
+    // Corporation
+    corporation: {
+        unlocked: false,
+        money: 0,
+        stocks: []
+    },
+    
+    // Stats
+    goldenCookiesClicked: 0,
+    totalPlayTime: 0,
+    
+    // Settings
     settings: {
         soundEnabled: true,
+        particlesEnabled: true,
+        screenShakeEnabled: true,
         darkMode: false
     }
 };
 
-// Audio Context for sound effects
+// News Headlines
+const newsHeadlines = [
+    "News: Local cookie factories hiring!",
+    "News: Scientists discover cookies may contain trace amounts of happiness.",
+    "News: Grandma arrested for cookie-related conspiracy.",
+    "News: Cookie market reaches all-time high!",
+    "News: 'I'm just here for the cookies' says anonymous clicker.",
+    "News: World cookie reserves mysteriously depleting.",
+    "News: Cookie-themed amusement park opening soon!",
+    "News: Study shows clicking cookies reduces stress by 100%.",
+    "News: International Cookie Day declared a global holiday.",
+    "News: Cookies found to be the secret to eternal happiness.",
+    "News: Cookie mine collapse! Dozens of chocolate chips lost.",
+    "News: Cookie factory workers demand more dough.",
+    "News: World leaders gather for emergency cookie summit.",
+    "News: Cookie-based cryptocurrency 'DoughCoin' launches!",
+    "News: Scientists working on infinite cookie theorem.",
+    "News: Cookie-powered cars could end fossil fuel dependency.",
+    "News: Fortune cookies now contain actual fortunes!",
+    "News: Cookie-themed TV show 'Breaking Dough' tops ratings.",
+    "News: Ancient cookie recipe discovered in pyramid!",
+    "News: Cookie-related puns reach critical mass."
+];
+
+// DOM Elements
+const cookieEl = document.getElementById('cookie');
+const cookieCountEl = document.getElementById('cookie-count');
+const cpsEl = document.getElementById('cps');
+const clickCountEl = document.getElementById('click-count');
+const clickPowerEl = document.getElementById('click-power');
+const upgradesEl = document.getElementById('upgrades');
+const floatingTextContainer = document.getElementById('floating-text-container');
+const newsContent = document.getElementById('news-content');
+
+// Audio Context
 let audioContext = null;
 
 function initAudio() {
@@ -381,87 +885,277 @@ function initAudio() {
     }
 }
 
-function playClickSound() {
+function playSound(freq, duration, type = 'sine') {
     if (!game.settings.soundEnabled || !audioContext) return;
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.1);
-    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.1);
+    const osc = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    osc.connect(gain);
+    gain.connect(audioContext.destination);
+    osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+    osc.type = type;
+    gain.gain.setValueAtTime(0.3, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+    osc.start(audioContext.currentTime);
+    osc.stop(audioContext.currentTime + duration);
 }
 
-function playBuySound() {
-    if (!game.settings.soundEnabled || !audioContext) return;
-    const oscillator = audioContext.createOscillator();
-    const gainNode = audioContext.createGain();
-    oscillator.connect(gainNode);
-    gainNode.connect(audioContext.destination);
-    oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
-    oscillator.frequency.exponentialRampToValueAtTime(800, audioContext.currentTime + 0.15);
-    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
-    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.15);
-    oscillator.start(audioContext.currentTime);
-    oscillator.stop(audioContext.currentTime + 0.15);
+function playClickSound() { playSound(800, 0.1); }
+function playBuySound() { playSound(600, 0.15); playSound(800, 0.15); }
+function playGoldenSound() { playSound(1200, 0.3, 'square'); }
+function playAchievementSound() { 
+    playSound(523.25, 0.1); 
+    setTimeout(() => playSound(659.25, 0.1), 100);
+    setTimeout(() => playSound(783.99, 0.2), 200);
 }
 
-// DOM Elements
-const cookieEl = document.getElementById('cookie');
-const cookieCountEl = document.getElementById('cookie-count');
-const cpsEl = document.getElementById('cps');
-const upgradesEl = document.getElementById('upgrades');
-const floatingTextContainer = document.getElementById('floating-text-container');
-const settingsModal = document.getElementById('settings-modal');
-const installBtn = document.getElementById('install-btn');
-
-// Helper functions
+// Format Numbers
 function formatNumber(num) {
+    const suffixes = ['', 'K', 'M', 'B', 'T', 'Qa', 'Qi', 'Sx', 'Sp', 'Oc', 'No', 'Dc'];
     if (num < 1000) return Math.floor(num).toString();
-    if (num < 1000000) return (num / 1000).toFixed(1) + 'K';
-    if (num < 1000000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num < 1000000000000) return (num / 1000000000).toFixed(1) + 'B';
-    return (num / 1000000000000).toFixed(1) + 'T';
+    const exp = Math.floor(Math.log10(num) / 3);
+    const suffix = suffixes[Math.min(exp, suffixes.length - 1)];
+    return (num / Math.pow(1000, exp)).toFixed(2) + suffix;
 }
 
-function getUpgradeCost(upgradeKey) {
-    const upgrade = game.upgrades[upgradeKey];
-    return Math.floor(upgrade.baseCost * Math.pow(1.15, upgrade.owned));
+// Calculate Cost
+function getUpgradeCost(key) {
+    const upgrade = game.upgrades[key];
+    let multiplier = 1.15;
+    if (game.prestigeUpgrades.buildingDiscount?.purchased) multiplier = 1.135;
+    return Math.floor(upgrade.baseCost * Math.pow(multiplier, upgrade.owned));
 }
 
+// Calculate CPS
 function getTotalCps() {
     let cps = 0;
     for (const key in game.upgrades) {
         cps += game.upgrades[key].owned * game.upgrades[key].baseCps;
     }
-    return cps;
+    return cps * game.globalMultiplier;
 }
 
-// Cookie click handler
+// Screen Shake
+function triggerScreenShake(intensity = 'normal') {
+    if (!game.settings.screenShakeEnabled) return;
+    document.body.classList.add(intensity === 'big' ? 'screen-shake-big' : 'screen-shake');
+    setTimeout(() => {
+        document.body.classList.remove('screen-shake', 'screen-shake-big');
+    }, intensity === 'big' ? 500 : 300);
+}
+
+// Particle System
+function createParticles(x, y, count = 5, type = 'cookie') {
+    if (!game.settings.particlesEnabled) return;
+    const emojis = type === 'cookie' ? ['🍪', '🍪', '🍪', '🍩', '🥠'] : ['✨', '⭐', '💫', '🌟'];
+    for (let i = 0; i < count; i++) {
+        const particle = document.createElement('div');
+        particle.className = 'particle';
+        particle.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+        particle.style.left = x + 'px';
+        particle.style.top = y + 'px';
+        particle.style.fontSize = (15 + Math.random() * 15) + 'px';
+        const angle = (Math.PI * 2 * i) / count;
+        const velocity = 50 + Math.random() * 100;
+        particle.style.setProperty('--tx', Math.cos(angle) * velocity + 'px');
+        particle.style.setProperty('--ty', Math.sin(angle) * velocity + 'px');
+        document.body.appendChild(particle);
+        setTimeout(() => particle.remove(), 800);
+    }
+}
+
+// Cookie Click Handler
 function clickCookie(e) {
     initAudio();
     playClickSound();
-    game.cookies += game.clickPower;
-    game.totalCookies += game.clickPower;
+    
+    const clickValue = game.clickPower * game.clickMultiplier;
+    game.cookies += clickValue;
+    game.totalCookies += clickValue;
+    game.totalCookiesAllTime += clickValue;
     game.clicks++;
+    
+    // Visual effects
     cookieEl.classList.add('wobble');
     setTimeout(() => cookieEl.classList.remove('wobble'), 300);
+    
+    triggerScreenShake(clickValue >= 100 ? 'big' : 'normal');
+    
+    if (e) {
+        createParticles(e.clientX, e.clientY, 5 + Math.floor(Math.log10(clickValue + 1)));
+    }
+    
+    // Floating text
     const floatEl = document.createElement('div');
     floatEl.className = 'floating-text';
-    floatEl.textContent = '+' + formatNumber(game.clickPower);
+    floatEl.textContent = '+' + formatNumber(clickValue);
+    floatEl.style.fontSize = Math.min(24 + Math.log10(clickValue) * 3, 48) + 'px';
     floatEl.style.left = (e ? e.offsetX : 100) + 'px';
     floatEl.style.top = (e ? e.offsetY : 100) + 'px';
     floatingTextContainer.appendChild(floatEl);
     setTimeout(() => floatEl.remove(), 1000);
+    
+    checkAchievements();
     updateDisplay();
 }
 
 cookieEl.addEventListener('click', clickCookie);
 
-// Render upgrades
+// Golden Cookie System
+function spawnGoldenCookie() {
+    if (document.querySelector('.golden-cookie')) return;
+    
+    const golden = document.createElement('div');
+    golden.className = 'golden-cookie';
+    golden.textContent = '🌟';
+    golden.style.left = (50 + Math.random() * (window.innerWidth - 150)) + 'px';
+    golden.style.top = (100 + Math.random() * (window.innerHeight - 200)) + 'px';
+    
+    golden.addEventListener('click', (e) => {
+        e.stopPropagation();
+        clickGoldenCookie(golden);
+    });
+    
+    document.body.appendChild(golden);
+    playGoldenSound();
+    
+    // Despawn after 13 seconds
+    setTimeout(() => {
+        if (golden.parentNode) golden.remove();
+    }, 13000);
+}
+
+function clickGoldenCookie(element) {
+    game.goldenCookiesClicked++;
+    createParticles(parseInt(element.style.left), parseInt(element.style.top), 20, 'golden');
+    element.remove();
+    
+    const effects = ['lucky', 'frenzy', 'clickFrenzy', 'chain'];
+    const effect = effects[Math.floor(Math.random() * effects.length)];
+    
+    const notification = document.getElementById('golden-notification');
+    const title = document.getElementById('golden-title');
+    const desc = document.getElementById('golden-desc');
+    
+    switch(effect) {
+        case 'lucky':
+            const luckyAmount = getTotalCps() * 7 + 13;
+            game.cookies += luckyAmount;
+            game.totalCookies += luckyAmount;
+            title.textContent = 'Lucky!';
+            desc.textContent = `+${formatNumber(luckyAmount)} cookies!`;
+            break;
+        case 'frenzy':
+            game.globalMultiplier *= 7;
+            title.textContent = 'Frenzy!';
+            desc.textContent = 'x7 CPS for 77 seconds!';
+            setTimeout(() => { game.globalMultiplier /= 7; updateDisplay(); }, 77000);
+            break;
+        case 'clickFrenzy':
+            game.clickMultiplier *= 777;
+            title.textContent = 'Click Frenzy!';
+            desc.textContent = '+777% click power for 13 seconds!';
+            updateDisplay();
+            setTimeout(() => { game.clickMultiplier /= 777; updateDisplay(); }, 13000);
+            break;
+        case 'chain':
+            game.cookies += getTotalCps() * 10;
+            title.textContent = 'Cookie Chain!';
+            desc.textContent = 'Another golden cookie will appear soon!';
+            setTimeout(spawnGoldenCookie, 3000);
+            break;
+    }
+    
+    notification.classList.add('show');
+    playGoldenSound();
+    setTimeout(() => notification.classList.remove('show'), 3000);
+    checkAchievements();
+    updateDisplay();
+}
+
+// Random Events
+function triggerRandomEvent() {
+    const events = [
+        { name: 'Cookie Market Crash', desc: 'Buildings 10% cheaper for 60 seconds!', duration: 60, effect: () => { game.globalMultiplier *= 1.1; }, end: () => { game.globalMultiplier /= 1.1; } },
+        { name: 'Sugar Rush', desc: '+50% CPS for 30 seconds!', duration: 30, effect: () => { game.globalMultiplier *= 1.5; }, end: () => { game.globalMultiplier /= 1.5; } },
+        { name: 'Grandma Uprising', desc: '-1% cookies but +10% grandma CPS!', duration: 0, effect: () => { game.cookies *= 0.99; game.upgrades.grandma.baseCps *= 1.1; } }
+    ];
+    
+    const event = events[Math.floor(Math.random() * events.length)];
+    const banner = document.getElementById('event-banner');
+    banner.textContent = `${event.name}: ${event.desc}`;
+    banner.classList.add('show');
+    event.effect();
+    updateDisplay();
+    
+    setTimeout(() => {
+        banner.classList.remove('show');
+        if (event.end) event.end();
+        updateDisplay();
+    }, (event.duration || 5) * 1000);
+}
+
+// Achievement System
+function checkAchievements() {
+    let newUnlock = false;
+    for (const [key, ach] of Object.entries(game.achievements)) {
+        if (!ach.unlocked && ach.condition()) {
+            ach.unlocked = true;
+            newUnlock = true;
+            showAchievementPopup(ach.name, ach.desc);
+            // Each achievement gives +1% CPS
+            game.globalMultiplier *= 1.01;
+        }
+    }
+    if (newUnlock) {
+        playAchievementSound();
+        updateAchievementsDisplay();
+    }
+}
+
+function showAchievementPopup(name, desc) {
+    const popup = document.getElementById('achievement-popup');
+    document.getElementById('achievement-text').textContent = `${name}: ${desc}`;
+    popup.classList.add('show');
+    setTimeout(() => popup.classList.remove('show'), 4000);
+}
+
+function updateAchievementsDisplay() {
+    const list = document.getElementById('achievements-list');
+    list.innerHTML = '';
+    for (const [key, ach] of Object.entries(game.achievements)) {
+        const div = document.createElement('div');
+        div.className = `achievement ${ach.unlocked ? 'unlocked' : ''}`;
+        div.innerHTML = `
+            <div class="achievement-icon">${ach.unlocked ? '🏆' : '🔒'}</div>
+            <div class="achievement-info">
+                <div class="achievement-name">${ach.name}</div>
+                <div class="achievement-desc">${ach.desc}</div>
+            </div>
+        `;
+        list.appendChild(div);
+    }
+}
+
+// Milestone Check
+function checkMilestones(key) {
+    const upgrade = game.upgrades[key];
+    const milestones = [100, 500, 1000, 2000];
+    if (milestones.includes(upgrade.owned)) {
+        showMilestone(`${upgrade.name} Milestone!`, `You now have ${upgrade.owned} ${upgrade.name}s!`);
+        upgrade.baseCps *= 2; // Double efficiency at milestones
+    }
+}
+
+function showMilestone(title, desc) {
+    const banner = document.getElementById('milestone-banner');
+    document.getElementById('milestone-title').textContent = title;
+    document.getElementById('milestone-desc').textContent = desc;
+    banner.classList.add('show');
+    triggerScreenShake('big');
+    setTimeout(() => banner.classList.remove('show'), 3000);
+}
+
+// Shop Rendering
 function renderUpgrades() {
     upgradesEl.innerHTML = '';
     for (const [key, upgrade] of Object.entries(game.upgrades)) {
@@ -470,11 +1164,11 @@ function renderUpgrades() {
         const upgradeEl = document.createElement('div');
         upgradeEl.className = `upgrade ${affordable ? 'affordable' : 'disabled'}`;
         upgradeEl.innerHTML = `
-            <div class="upgrade-icon">${upgrade.icon}</div>
+            <div style="font-size:2rem;">${upgrade.icon}</div>
             <div class="upgrade-info">
                 <div class="upgrade-name">${upgrade.name}</div>
                 <div class="upgrade-cost">Cost: ${formatNumber(cost)} cookies</div>
-                <div class="upgrade-cps">+${upgrade.baseCps} CPS</div>
+                <div style="font-size:0.85rem;opacity:0.8;">+${formatNumber(upgrade.baseCps)} CPS</div>
             </div>
             <div class="upgrade-owned">${upgrade.owned}</div>
         `;
@@ -483,7 +1177,6 @@ function renderUpgrades() {
     }
 }
 
-// Buy upgrade
 function buyUpgrade(key) {
     initAudio();
     const cost = getUpgradeCost(key);
@@ -491,92 +1184,307 @@ function buyUpgrade(key) {
         game.cookies -= cost;
         game.upgrades[key].owned++;
         playBuySound();
+        checkMilestones(key);
+        checkAchievements();
         updateDisplay();
     }
 }
 
-// Update display
-function updateDisplay() {
-    cookieCountEl.textContent = formatNumber(Math.floor(game.cookies));
-    cpsEl.textContent = formatNumber(getTotalCps());
-    renderUpgrades();
+// Garden System
+function initGarden() {
+    if (game.cookies >= 1000) {
+        game.garden.unlocked = true;
+        document.getElementById('garden-unlock').style.display = 'none';
+        document.getElementById('garden-content').style.display = 'block';
+        renderGarden();
+    }
 }
 
-// Game loop
-setInterval(() => {
-    const cps = getTotalCps();
-    game.cookies += cps / 10;
-    game.totalCookies += cps / 10;
+function renderGarden() {
+    const grid = document.getElementById('garden-grid');
+    grid.innerHTML = '';
+    game.garden.plots.forEach((plot, i) => {
+        const div = document.createElement('div');
+        div.className = `garden-plot ${plot ? 'planted' : ''}`;
+        div.textContent = plot || (game.garden.seeds > 0 ? '🌱' : '');
+        div.addEventListener('click', () => clickPlot(i));
+        grid.appendChild(div);
+    });
+}
+
+function clickPlot(index) {
+    if (!game.garden.plots[index] && game.garden.seeds > 0) {
+        game.garden.seeds--;
+        game.garden.plots[index] = '🌱';
+        renderGarden();
+        
+        // Grow after 30 seconds
+        setTimeout(() => {
+            const crops = ['🍪', '🍩', '🥠', '🍪', '⭐'];
+            game.garden.plots[index] = crops[Math.floor(Math.random() * crops.length)];
+            renderGarden();
+        }, 30000);
+    } else if (game.garden.plots[index] && game.garden.plots[index] !== '🌱') {
+        // Harvest
+        const crop = game.garden.plots[index];
+        const rewards = { '🍪': 100, '🍩': 500, '🥠': 1000, '⭐': 5000 };
+        const reward = rewards[crop] || 100;
+        game.cookies += reward;
+        game.garden.plots[index] = null;
+        game.garden.seeds++;
+        renderGarden();
+        
+        const floatEl = document.createElement('div');
+        floatEl.className = 'floating-text';
+        floatEl.textContent = '+' + formatNumber(reward);
+        floatEl.style.left = '50px';
+        floatEl.style.top = '50px';
+        floatingTextContainer.appendChild(floatEl);
+        setTimeout(() => floatEl.remove(), 1000);
+    }
+}
+
+// Prestige System
+function calculateHeavenlyChips() {
+    return Math.floor(Math.sqrt(game.totalCookiesAllTime / 1e12));
+}
+
+function updatePrestigeDisplay() {
+    const chips = calculateHeavenlyChips();
+    const potentialGain = chips - game.heavenlyChips;
+    
+    if (potentialGain > 0) {
+        document.getElementById('prestige-section').classList.add('available');
+        document.getElementById('prestige-btn').classList.add('available');
+        document.getElementById('prestige-tab').style.display = 'block';
+        document.getElementById('potential-chips').textContent = potentialGain;
+        document.getElementById('modal-potential-chips').textContent = potentialGain;
+    }
+    
+    document.getElementById('heavenly-chips-display').textContent = game.heavenlyChips;
+    document.getElementById('heavenly-stat').style.display = game.heavenlyChips > 0 ? 'block' : 'none';
+    
+    // Render prestige upgrades
+    const prestigeUpgradesEl = document.getElementById('prestige-upgrades');
+    prestigeUpgradesEl.innerHTML = '';
+    for (const [key, upgrade] of Object.entries(game.prestigeUpgrades)) {
+        const div = document.createElement('div');
+        div.className = `prestige-upgrade ${upgrade.purchased ? 'purchased' : ''} ${game.heavenlyChips >= upgrade.cost ? 'affordable' : ''}`;
+        div.innerHTML = `
+            <div>
+                <div style="font-weight:bold;">${upgrade.name}</div>
+                <div style="font-size:0.85rem;">${upgrade.desc}</div>
+            </div>
+            <div style="font-size:1.5rem; font-weight:bold;">${upgrade.purchased ? '✓' : upgrade.cost + ' 💎'}</div>
+        `;
+        div.addEventListener('click', () => buyPrestigeUpgrade(key));
+        prestigeUpgradesEl.appendChild(div);
+    }
+}
+
+function buyPrestigeUpgrade(key) {
+    const upgrade = game.prestigeUpgrades[key];
+    if (!upgrade.purchased && game.heavenlyChips >= upgrade.cost) {
+        game.heavenlyChips -= upgrade.cost;
+        upgrade.purchased = true;
+        applyPrestigeUpgrade(upgrade.effect);
+        updatePrestigeDisplay();
+        updateDisplay();
+    }
+}
+
+function applyPrestigeUpgrade(effect) {
+    switch(effect) {
+        case 'cps_bonus':
+            game.globalMultiplier *= (1 + game.heavenlyChips * 0.02);
+            break;
+        case 'offline_boost':
+            game.offlineMultiplier = 1.0;
+            break;
+        case 'auto_click':
+            setInterval(() => clickCookie(), 1000);
+            break;
+    }
+}
+
+function ascend() {
+    const chips = calculateHeavenlyChips();
+    const gain = chips - game.heavenlyChips;
+    if (gain <= 0) return;
+    
+    game.heavenlyChips = chips;
+    game.totalHeavenlyChips += gain;
+    game.prestigeCount++;
+    
+    // Reset game but keep prestige
+    game.cookies = game.prestigeUpgrades.starterCookies?.purchased ? 100 : 0;
+    game.totalCookies = 0;
+    game.clicks = 0;
+    for (const key in game.upgrades) {
+        game.upgrades[key].owned = 0;
+    }
+    
+    // Reapply permanent bonuses
+    if (game.prestigeUpgrades.cps_bonus?.purchased) {
+        game.globalMultiplier = 1 + game.heavenlyChips * 0.02;
+    }
+    
+    checkAchievements();
     updateDisplay();
-}, 100);
+    closeAllModals();
+    showMilestone('Ascension Complete!', `You gained ${gain} Heavenly Chips!`);
+}
 
-// Auto-save every 5 seconds
-setInterval(() => { saveGame(); }, 5000);
+// Stats Display
+function showStats() {
+    const content = document.getElementById('stats-content');
+    const playTime = Math.floor((Date.now() - game.startTime) / 1000);
+    const hours = Math.floor(playTime / 3600);
+    const minutes = Math.floor((playTime % 3600) / 60);
+    
+    content.innerHTML = `
+        <p><strong>Total Cookies Baked (All Time):</strong> ${formatNumber(game.totalCookiesAllTime)}</p>
+        <p><strong>Session Cookies:</strong> ${formatNumber(game.totalCookies)}</p>
+        <p><strong>Total Clicks:</strong> ${formatNumber(game.clicks)}</p>
+        <p><strong>Golden Cookies Clicked:</strong> ${game.goldenCookiesClicked}</p>
+        <p><strong>Prestige Resets:</strong> ${game.prestigeCount}</p>
+        <p><strong>Heavenly Chips Earned:</strong> ${game.totalHeavenlyChips}</p>
+        <p><strong>Play Time:</strong> ${hours}h ${minutes}m</p>
+        <p><strong>Achievements Unlocked:</strong> ${Object.values(game.achievements).filter(a => a.unlocked).length}/${Object.keys(game.achievements).length}</p>
+    `;
+    document.getElementById('stats-modal').classList.remove('hidden');
+}
 
-// Save game
+// Update Display
+function updateDisplay() {
+    const cps = getTotalCps();
+    cookieCountEl.textContent = formatNumber(Math.floor(game.cookies));
+    cpsEl.textContent = formatNumber(cps);
+    clickCountEl.textContent = formatNumber(game.clicks);
+    clickPowerEl.textContent = formatNumber(game.clickPower * game.clickMultiplier);
+    
+    const multiplierDisplay = document.getElementById('multiplier-display');
+    if (game.clickMultiplier > 1 || game.globalMultiplier > 1) {
+        multiplierDisplay.textContent = `Active Multipliers: ${game.clickMultiplier > 1 ? 'Click x' + formatNumber(game.clickMultiplier) : ''} ${game.globalMultiplier > 1 ? 'CPS x' + formatNumber(game.globalMultiplier) : ''}`;
+    } else {
+        multiplierDisplay.textContent = '';
+    }
+    
+    renderUpgrades();
+    updatePrestigeDisplay();
+    initGarden();
+}
+
+// Save/Load
 function saveGame() {
     game.lastSave = Date.now();
     try {
         localStorage.setItem('cookieClickerSave', JSON.stringify(game));
     } catch (e) {
-        console.warn('Could not save game:', e);
+        console.warn('Could not save:', e);
     }
 }
 
-// Load game
 function loadGame() {
     try {
         const save = localStorage.getItem('cookieClickerSave');
         if (save) {
             const parsed = JSON.parse(save);
             Object.assign(game, parsed);
+            
+            // Calculate offline progress
             const offline = (Date.now() - game.lastSave) / 1000;
-            const offlineCps = getTotalCps();
-            const offlineCookies = offlineCps * offline * 0.5;
-            game.cookies += offlineCookies;
-            game.totalCookies += offlineCookies;
+            if (offline > 60 && getTotalCps() > 0) {
+                const offlineCps = getTotalCps();
+                const offlineCookies = offlineCps * offline * game.offlineMultiplier;
+                game.cookies += offlineCookies;
+                game.totalCookies += offlineCookies;
+                
+                // Show offline modal
+                document.getElementById('offline-cookies').textContent = formatNumber(offlineCookies);
+                document.getElementById('offline-modal').style.display = 'flex';
+            }
         }
     } catch (e) {
-        console.warn('Could not load game:', e);
+        console.warn('Could not load:', e);
     }
+    
     if (game.settings.darkMode) {
         document.body.classList.add('dark-mode');
         document.getElementById('dark-mode-toggle').checked = true;
     }
     document.getElementById('sound-toggle').checked = game.settings.soundEnabled;
+    document.getElementById('particles-toggle').checked = game.settings.particlesEnabled;
+    document.getElementById('screen-shake-toggle').checked = game.settings.screenShakeEnabled;
+    
+    updateAchievementsDisplay();
     updateDisplay();
 }
 
-// Reset game
 function resetGame() {
-    if (confirm('Are you sure you want to reset all progress? This cannot be undone!')) {
+    if (confirm('Reset ALL progress including prestige? This cannot be undone!')) {
         localStorage.removeItem('cookieClickerSave');
         location.reload();
     }
 }
 
-// Settings modal
+// Modal Controls
+function closeAllModals() {
+    document.querySelectorAll('.modal').forEach(m => m.classList.add('hidden'));
+    document.getElementById('offline-modal').style.display = 'none';
+}
+
+// Event Listeners
 document.getElementById('settings-btn').addEventListener('click', () => {
-    settingsModal.classList.remove('hidden');
+    document.getElementById('settings-modal').classList.remove('hidden');
 });
 
-document.getElementById('close-settings').addEventListener('click', () => {
-    settingsModal.classList.add('hidden');
-});
-
-settingsModal.addEventListener('click', (e) => {
-    if (e.target === settingsModal) {
-        settingsModal.classList.add('hidden');
-    }
+document.getElementById('close-settings').addEventListener('click', closeAllModals);
+document.getElementById('stats-btn').addEventListener('click', showStats);
+document.getElementById('close-stats').addEventListener('click', closeAllModals);
+document.getElementById('close-offline').addEventListener('click', () => {
+    document.getElementById('offline-modal').style.display = 'none';
 });
 
 document.getElementById('reset-btn').addEventListener('click', () => {
     resetGame();
-    settingsModal.classList.add('hidden');
+    closeAllModals();
 });
 
+document.getElementById('prestige-btn').addEventListener('click', () => {
+    document.getElementById('prestige-modal').classList.remove('hidden');
+});
+
+document.getElementById('ascend-btn').addEventListener('click', () => {
+    document.getElementById('prestige-modal').classList.remove('hidden');
+});
+
+document.getElementById('confirm-prestige').addEventListener('click', ascend);
+document.getElementById('cancel-prestige').addEventListener('click', closeAllModals);
+
+// Shop Tabs
+document.querySelectorAll('.shop-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+        document.querySelectorAll('.shop-tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.shop-panel').forEach(p => p.classList.remove('active'));
+        tab.classList.add('active');
+        document.getElementById(tab.dataset.tab + '-panel').classList.add('active');
+    });
+});
+
+// Settings
 document.getElementById('sound-toggle').addEventListener('change', (e) => {
     game.settings.soundEnabled = e.target.checked;
+    saveGame();
+});
+
+document.getElementById('particles-toggle').addEventListener('change', (e) => {
+    game.settings.particlesEnabled = e.target.checked;
+    saveGame();
+});
+
+document.getElementById('screen-shake-toggle').addEventListener('change', (e) => {
+    game.settings.screenShakeEnabled = e.target.checked;
     saveGame();
 });
 
@@ -586,37 +1494,76 @@ document.getElementById('dark-mode-toggle').addEventListener('change', (e) => {
     saveGame();
 });
 
-// PWA Install
+// Click outside modals to close
+document.querySelectorAll('.modal').forEach(modal => {
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeAllModals();
+    });
+});
+
+// Game Loop
+setInterval(() => {
+    const cps = getTotalCps();
+    game.cookies += cps / 10;
+    game.totalCookies += cps / 10;
+    game.totalCookiesAllTime += cps / 10;
+    updateDisplay();
+}, 100);
+
+// Golden Cookie Spawner
+setInterval(() => {
+    const hasGoldenFrequenter = game.prestigeUpgrades.goldenFrequenter?.purchased;
+    const chance = hasGoldenFrequenter ? 0.5 : 0.25;
+    if (Math.random() < chance && Date.now() - game.lastGoldenCookie > 120000) {
+        spawnGoldenCookie();
+        game.lastGoldenCookie = Date.now();
+    }
+}, 5000);
+
+// Random Events
+setInterval(() => {
+    if (Math.random() < 0.3 && game.totalCookies > 1000) {
+        triggerRandomEvent();
+    }
+}, 60000);
+
+// News Ticker Rotation
+setInterval(() => {
+    newsContent.textContent = newsHeadlines[Math.floor(Math.random() * newsHeadlines.length)];
+}, 15000);
+
+// Auto-save
+setInterval(saveGame, 5000);
+
+// PWA
 let deferredPrompt = null;
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    installBtn.style.display = 'block';
+    document.getElementById('install-btn').style.display = 'inline-block';
 });
 
-installBtn.addEventListener('click', async () => {
+document.getElementById('install-btn').addEventListener('click', async () => {
     if (deferredPrompt) {
         deferredPrompt.prompt();
         const { outcome } = await deferredPrompt.userChoice;
         if (outcome === 'accepted') {
-            installBtn.style.display = 'none';
+            document.getElementById('install-btn').style.display = 'none';
         }
         deferredPrompt = null;
     }
 });
 
-// Service Worker registration
+// Service Worker
 if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('SW registered:', reg))
-        .catch(err => console.log('SW registration failed:', err));
+    navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed:', err));
 }
 
-// Save on page unload
-window.addEventListener('beforeunload', () => { saveGame(); });
+// Save on unload
+window.addEventListener('beforeunload', saveGame);
 
 // Initialize
-document.addEventListener('DOMContentLoaded', () => { loadGame(); });
+document.addEventListener('DOMContentLoaded', loadGame);
     </script>
 </body>
 </html>
