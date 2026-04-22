@@ -1,28 +1,28 @@
 <script lang="ts">
-  import { gameState, formatNumber } from '$lib/stores/game';
+  import { gameState, modals, formatNumber } from '$lib/stores/game';
 
-  let gameData = $derived($gameState);
-  let showModal = $state(false);
+  let modalData = $derived($modals);
   let playTime = $state(0);
 
-  export function open() {
-    showModal = true;
-    updatePlayTime();
-  }
-
-  export function close() {
-    showModal = false;
-  }
+  $effect(() => {
+    if (modalData.stats) {
+      updatePlayTime();
+    }
+  });
 
   function updatePlayTime() {
-    const elapsed = Math.floor((Date.now() - gameData.startTime) / 1000);
+    const elapsed = Math.floor((Date.now() - $gameState.startTime) / 1000);
     playTime = elapsed;
+  }
+
+  function close() {
+    modals.update((m) => ({ ...m, stats: false }));
   }
 
   let hours = $derived(Math.floor(playTime / 3600));
   let minutes = $derived(Math.floor((playTime % 3600) / 60));
-  let unlockedCount = $derived(Object.values(gameData.achievements).filter((a) => a.unlocked).length);
-  let totalCount = $derived(Object.keys(gameData.achievements).length);
+  let unlockedCount = $derived(Object.values($gameState.achievements).filter((a) => a.unlocked).length);
+  let totalCount = $derived(Object.keys($gameState.achievements).length);
 
   function handleKeydown(e: KeyboardEvent) {
     if (e.key === 'Escape') {
@@ -33,8 +33,8 @@
 
 <svelte:window onkeydown={handleKeydown} />
 
-{#if showModal}
-  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions a11y_no_noninteractive_element_interactions a11y_interactive_supports_focus -->
+{#if modalData.stats}
+  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions a11y_interactive_supports_focus -->
   <div class="modal" onclick={close} role="dialog" aria-modal="true" tabindex="-1">
     <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions a11y_no_noninteractive_element_interactions -->
     <div class="modal-content" onclick={(e) => e.stopPropagation()} role="presentation">
@@ -42,27 +42,27 @@
 
       <div class="stat-row">
         <strong>Total Cookies Baked (All Time):</strong>
-        {formatNumber(gameData.totalCookiesAllTime)}
+        {formatNumber($gameState.totalCookiesAllTime)}
       </div>
       <div class="stat-row">
         <strong>Session Cookies:</strong>
-        {formatNumber(gameData.totalCookies)}
+        {formatNumber($gameState.totalCookies)}
       </div>
       <div class="stat-row">
         <strong>Total Clicks:</strong>
-        {formatNumber(gameData.clicks)}
+        {formatNumber($gameState.clicks)}
       </div>
       <div class="stat-row">
         <strong>Golden Cookies Clicked:</strong>
-        {gameData.goldenCookiesClicked}
+        {$gameState.goldenCookiesClicked}
       </div>
       <div class="stat-row">
         <strong>Prestige Resets:</strong>
-        {gameData.prestigeCount}
+        {$gameState.prestigeCount}
       </div>
       <div class="stat-row">
         <strong>Heavenly Chips Earned:</strong>
-        {gameData.totalHeavenlyChips}
+        {$gameState.totalHeavenlyChips}
       </div>
       <div class="stat-row">
         <strong>Play Time:</strong>
