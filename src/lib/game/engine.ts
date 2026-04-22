@@ -121,17 +121,20 @@ export function calculateTotalHeavenlyChips(totalCookiesAllTime: number): number
 
 /**
  * Calculate prestige information for the prestige UI.
+ * 
+ * IMPORTANT: Uses totalHeavenlyChips (lifetime ledger) instead of heavenlyChips (spendable).
+ * This prevents re-minting chips that were already earned and spent on upgrades.
  */
 export function calculatePrestigeInfo(
   totalCookiesAllTime: number,
-  currentHeavenlyChips: number
+  totalHeavenlyChips: number
 ): PrestigeCalculation {
   const totalChips = calculateTotalHeavenlyChips(totalCookiesAllTime);
-  const potentialGain = totalChips - currentHeavenlyChips;
+  const potentialGain = totalChips - totalHeavenlyChips;
 
   return {
     totalChips,
-    currentChips: currentHeavenlyChips,
+    currentChips: totalHeavenlyChips,
     potentialGain: Math.max(0, potentialGain),
   };
 }
@@ -281,6 +284,10 @@ import { MILESTONE_THRESHOLDS } from './schema';
 /**
  * Check if buying this building count triggers a milestone.
  * Returns the milestone number or null if not a milestone.
+ * 
+ * NOTE: Milestone CPS doubling is NOT wired into getTotalCps or per-building CPS.
+ * Phase 2 scope explicitly excludes milestones. Kept for future implementation.
+ * See checkMilestone() in stores/game.ts which also leaves this as dead scope.
  */
 export function checkMilestone(newOwned: number): number | null {
   for (const threshold of MILESTONE_THRESHOLDS) {
@@ -414,16 +421,20 @@ export function createInitialGameState(): GameState {
 
 /**
  * Perform a prestige reset, keeping prestige-related state.
+ * 
+ * IMPORTANT: Computes gain from totalHeavenlyChips ledger, not heavenlyChips.
+ * This ensures spent chips cannot be re-minted.
  */
 export function performPrestige(state: GameState): GameState {
-  const prestigeInfo = calculatePrestigeInfo(state.totalCookiesAllTime, state.heavenlyChips);
+  const prestigeInfo = calculatePrestigeInfo(state.totalCookiesAllTime, state.totalHeavenlyChips);
   const gain = prestigeInfo.potentialGain;
 
   if (gain <= 0) {
     return state; // No prestige available
   }
 
-  const newHeavenlyChips = prestigeInfo.totalChips;
+  const newTotalHeavenlyChips = prestigeInfo.totalChips;
+  const newHeavenlyChips = newTotalHeavenlyChips; // Current spendable chips = total after reset
   const hasStarterPack = state.prestigeUpgrades.starterCookies?.purchased ?? false;
   const hasHeavenlyLuck = state.prestigeUpgrades.heavenlyLuck?.purchased ?? false;
 
@@ -453,7 +464,7 @@ export function performPrestige(state: GameState): GameState {
     globalMultiplier: newGlobalMultiplier,
     clickMultiplier: 1,
     heavenlyChips: newHeavenlyChips,
-    totalHeavenlyChips: state.totalHeavenlyChips + gain,
+    totalHeavenlyChips: newTotalHeavenlyChips,
     prestigeCount: state.prestigeCount + 1,
     buildings: newBuildings,
     achievements: newAchievements,

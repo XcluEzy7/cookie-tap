@@ -182,10 +182,20 @@ export function buyPrestigeUpgrade(key: string): void {
     const newPrestigeUpgrades = { ...state.prestigeUpgrades };
     newPrestigeUpgrades[key] = { purchased: true };
 
+    // REGRESSION FIX: Immediately recompute multiplier on Heavenly Luck purchase
+    // Previous behavior: multiplier only updated on prestige reset
+    // New behavior: apply bonus immediately so CPS reflects upgrade
+    let newGlobalMultiplier = state.globalMultiplier;
+    if (key === 'heavenlyLuck') {
+      // Heavenly Luck: +2% CPS per heavenly chip
+      newGlobalMultiplier = 1 + state.heavenlyChips * 0.02;
+    }
+
     return {
       ...state,
       heavenlyChips: result.newCookies,
       prestigeUpgrades: newPrestigeUpgrades,
+      globalMultiplier: newGlobalMultiplier,
     };
   });
 }
@@ -347,7 +357,8 @@ export function getBuildingCostNow(key: string): number {
 /** Get prestige info for display */
 export function getPrestigeInfo() {
   const state = get(gameState);
-  return calculatePrestigeInfo(state.totalCookiesAllTime, state.heavenlyChips);
+  // Use totalHeavenlyChips ledger to prevent re-minting spent chips
+  return calculatePrestigeInfo(state.totalCookiesAllTime, state.totalHeavenlyChips);
 }
 
 /** Check if building is affordable */

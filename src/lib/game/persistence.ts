@@ -338,9 +338,11 @@ export function loadGame(): LoadResult {
     const showOfflineModal = shouldShowOfflineProgress(offlineSeconds, cps);
 
     // Apply offline cookies if any
+    // IMPORTANT: Credit all three cookie counters for prestige progress
     if (offlineCookies > 0) {
       state.cookies += offlineCookies;
       state.totalCookies += offlineCookies;
+      state.totalCookiesAllTime += offlineCookies; // Required for prestige calculation
     }
 
     return {
