@@ -1,12 +1,11 @@
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
-  import { gameState, modals, initGame, startGameLoop, stopGameLoop } from '$lib/stores/game';
-  import { initClientRuntime, showInstallPrompt } from '$lib/client-runtime';
+  import { gameState, initGame, startGameLoop, stopGameLoop } from '$lib/stores/game';
+  import { initClientRuntime } from '$lib/client-runtime';
   import OfflineModal from '$lib/components/OfflineModal.svelte';
 
   let { children } = $props();
   
-  let showInstall = $state(false);
   let cleanup: (() => void) | null = null;
 
   onMount(() => {
@@ -16,12 +15,10 @@
     // Start the game loop for CPS accumulation
     startGameLoop();
 
-    // Initialize PWA runtime (service worker, install prompt, visibility hooks, autosave)
+    // Initialize PWA runtime (service worker, visibility hooks, autosave)
+    // Note: Install prompt is handled by Footer component for single-ownership UI boundary
     cleanup = initClientRuntime({
       getState: () => $gameState,
-      onInstallPromptReady: () => {
-        showInstall = true;
-      },
       onPageVisible: () => {
         // Page became visible - could recalculate time-based state here
       },
@@ -35,11 +32,6 @@
     cleanup?.();
     stopGameLoop();
   });
-
-  async function installPwa(): Promise<void> {
-    await showInstallPrompt();
-    showInstall = false;
-  }
 </script>
 
 <OfflineModal />

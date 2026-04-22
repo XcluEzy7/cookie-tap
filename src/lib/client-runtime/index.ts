@@ -11,8 +11,7 @@
  * It only orchestrates when saves happen and how the PWA install flow integrates.
  */
 
-export { initInstallPrompt, isInstallPromptSupported, getDeferredPrompt } from './install-prompt';
-export { showInstallPrompt } from './install-prompt';
+export { initInstallPrompt, isInstallPromptSupported, getDeferredPrompt, showInstallPrompt, installPromptReady } from './install-prompt';
 export type { InstallPromptState } from './install-prompt';
 
 export { initVisibilityHooks, isPageVisible, isPageHidden } from './visibility';

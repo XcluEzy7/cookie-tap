@@ -3,6 +3,8 @@
  * Handles the BeforeInstallPromptEvent lifecycle for PWA installation.
  */
 
+import { writable } from 'svelte/store';
+
 export interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>;
   userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
@@ -17,6 +19,12 @@ const state: InstallPromptState = {
   supported: typeof window !== 'undefined' && 'BeforeInstallPromptEvent' in window,
   deferredPrompt: null,
 };
+
+/**
+ * Reactive store for install prompt availability.
+ * UI components can subscribe to this to show/hide install buttons.
+ */
+export const installPromptReady = writable<boolean>(false);
 
 /**
  * Check if the browser supports the install prompt API.
@@ -42,6 +50,7 @@ export function initInstallPrompt(onPromptReady?: (prompt: BeforeInstallPromptEv
   const handler = (e: Event) => {
     e.preventDefault();
     state.deferredPrompt = e as BeforeInstallPromptEvent;
+    installPromptReady.set(true);
     onPromptReady?.(state.deferredPrompt);
   };
 
@@ -60,5 +69,6 @@ export async function showInstallPrompt(): Promise<'accepted' | 'dismissed' | nu
   await prompt.prompt();
   const { outcome } = await prompt.userChoice;
   state.deferredPrompt = null;
+  installPromptReady.set(false);
   return outcome;
 }

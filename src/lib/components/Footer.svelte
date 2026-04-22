@@ -1,39 +1,15 @@
 <script lang="ts">
   import { gameState, showSettingsModal, showStatsModal, showPrestigeModal, getPrestigeInfo } from '$lib/stores/game';
-  import { onMount } from 'svelte';
+  import { installPromptReady, showInstallPrompt } from '$lib/client-runtime';
 
   let gameData = $derived($gameState);
   let prestigeInfo = $derived(getPrestigeInfo());
+  let installReady = $derived($installPromptReady);
 
-  let installPrompt: BeforeInstallPromptEvent | null = $state(null);
-  let showInstall = $state(false);
-
-  interface BeforeInstallPromptEvent extends Event {
-    prompt(): Promise<void>;
-    userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  async function handleInstall() {
+    const outcome = await showInstallPrompt();
+    // Store auto-updates via installPromptReady, no need to manually set
   }
-
-  function handleInstall() {
-    if (installPrompt) {
-      installPrompt.prompt();
-      installPrompt.userChoice.then(({ outcome }) => {
-        if (outcome === 'accepted') {
-          showInstall = false;
-        }
-        installPrompt = null;
-      });
-    }
-  }
-
-  onMount(() => {
-    const handler = (e: Event) => {
-      e.preventDefault();
-      installPrompt = e as BeforeInstallPromptEvent;
-      showInstall = true;
-    };
-    window.addEventListener('beforeinstallprompt', handler);
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  });
 </script>
 
 <footer>
@@ -48,7 +24,7 @@
       ✨ Ascension
     </button>
   {/if}
-  {#if showInstall}
+  {#if installReady}
     <button onclick={handleInstall}>📱 Install App</button>
   {/if}
 </footer>
