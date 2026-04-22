@@ -350,6 +350,47 @@ export function resetGame(): void {
 }
 
 // ============================================
+// GAME LOOP (CPS ACCUMULATION)
+// ============================================
+
+let gameLoopInterval: ReturnType<typeof setInterval> | null = null;
+
+/**
+ * Start the game loop that accumulates CPS cookies.
+ * Call once at app startup after initGame().
+ */
+export function startGameLoop(): void {
+  if (gameLoopInterval !== null) return; // Already running
+  
+  gameLoopInterval = setInterval(() => {
+    gameState.update((state) => {
+      const currentCps = getTotalCps(state);
+      const tickCps = currentCps * (TICK_INTERVAL / 1000); // Convert interval to fraction
+      
+      if (tickCps <= 0) return state;
+      
+      return {
+        ...state,
+        cookies: state.cookies + tickCps,
+        totalCookies: state.totalCookies + tickCps,
+        totalCookiesAllTime: state.totalCookiesAllTime + tickCps,
+      };
+    });
+  }, TICK_INTERVAL);
+}
+
+/**
+ * Stop the game loop.
+ * Call when cleaning up or pausing the game.
+ */
+export function stopGameLoop(): void {
+  if (gameLoopInterval !== null) {
+    clearInterval(gameLoopInterval);
+    gameLoopInterval = null;
+  }
+}
+
+// ============================================
 // DERIVED COMPUTATIONS FOR UI
 // ============================================
 
@@ -379,5 +420,5 @@ export function canAffordBuilding(key: string): boolean {
 // ============================================
 
 export { BUILDINGS, PRESTIGE_UPGRADES, ACHIEVEMENTS };
-export { GARDEN_REWARDS, GARDEN_CROPS } from '../game/catalog';
+export { GARDEN_REWARDS, GARDEN_CROPS, GARDEN_GROWTH_TIME, TICK_INTERVAL, AUTOSAVE_INTERVAL, GOLDEN_SPAWN_CHECK_INTERVAL, RANDOM_EVENT_CHECK_INTERVAL } from '../game/catalog';
 export { formatNumber };
