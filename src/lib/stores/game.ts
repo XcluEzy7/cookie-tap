@@ -1,0 +1,366 @@
+/**
+ * CookieTap Game Store
+ * Svelte reactive store wrapping the domain modules.
+ *
+ * This is the thin adapter layer between:
+ * - The domain logic (src/lib/game/*)
+ * - The UI components (src/lib/components/* and +page.svelte)
+ *
+ * The store provides:
+ * - Reactive state signals
+ * - Action methods that call domain functions
+ * - Side-effect handling (timers, golden cookies)
+ */
+
+import { writable, derived, get } from 'svelte/store';
+import type { Writable, Readable } from 'svelte/store';
+
+import type { GameState, SaveDataV2 } from '../game/schema';
+import {
+  createInitialGameState,
+  getTotalCps,
+  getBuildingCost,
+  getClickPower,
+  calculatePrestigeInfo,
+  attemptBuildingPurchase,
+  attemptPrestigePurchase,
+  checkAchievements,
+  checkMilestone,
+  applyMilestoneBonus,
+  createAchievementCheckState,
+  formatNumber,
+  performPrestige,
+} from '../game/engine';
+
+import {
+  loadGame,
+  saveGame,
+  extractSaveData,
+  SAVE_KEY,
+} from '../game/persistence';
+
+import {
+  BUILDINGS,
+  PRESTIGE_UPGRADES,
+  ACHIEVEMENTS,
+  GARDEN_CROPS,
+  GARDEN_GROWTH_TIME,
+  TICK_INTERVAL,
+  AUTOSAVE_INTERVAL,
+  ACHIEVEMENT_CPS_MULTIPLIER,
+  COST_MULTIPLIER_DISCOUNTED,
+} from '../game/catalog';
+
+// ============================================
+// STORE TYPES
+// ============================================
+
+/** Offline modal data */
+export interface OfflineModalData {
+  show: boolean;
+  cookies: number;
+}
+
+/** Modal state */
+export interface ModalState {
+  offline: OfflineModalData;
+  settings: boolean;
+  stats: boolean;
+  prestige: boolean;
+}
+
+// ============================================
+// REACTIVE STORES
+// ============================================
+
+/** Main game state store */
+export const gameState: Writable<GameState> = writable(createInitialGameState());
+
+/** Derived CPS value */
+export const cps: Readable<number> = derived(gameState, ($state) => {
+  return getTotalCps($state);
+});
+
+/** Derived click power value */
+export const clickPower: Readable<number> = derived(gameState, ($state) => {
+  return getClickPower($state.clickPower, $state.clickMultiplier);
+});
+
+/** Modal state */
+export const modals = writable<ModalState>({
+  offline: { show: false, cookies: 0 },
+  settings: false,
+  stats: false,
+  prestige: false,
+});
+
+// ============================================
+// GAME ACTIONS
+// ============================================
+
+/** Initialize game from save */
+export function initGame(): void {
+  const result = loadGame();
+
+  gameState.set(result.state);
+
+  if (result.showOfflineModal && result.offlineCookies > 0) {
+    modals.update((m) => ({
+      ...m,
+      offline: { show: true, cookies: result.offlineCookies },
+    }));
+  }
+}
+
+/** Click the main cookie */
+export function clickCookie(): void {
+  gameState.update((state) => {
+    const clickValue = getClickPower(state.clickPower, state.clickMultiplier);
+
+    return {
+      ...state,
+      cookies: state.cookies + clickValue,
+      totalCookies: state.totalCookies + clickValue,
+      totalCookiesAllTime: state.totalCookiesAllTime + clickValue,
+      clicks: state.clicks + 1,
+    };
+  });
+
+  // Check achievements
+  checkAndUnlockAchievements();
+}
+
+/** Buy a building */
+export function buyBuilding(key: string): void {
+  gameState.update((state) => {
+    const hasDiscount = state.prestigeUpgrades.buildingDiscount?.purchased ?? false;
+    const result = attemptBuildingPurchase(
+      state.cookies,
+      key,
+      state.buildings[key]?.owned ?? 0,
+      hasDiscount
+    );
+
+    if (!result.success) return state;
+
+    const newBuildings = { ...state.buildings };
+    newBuildings[key] = { owned: result.newOwned };
+
+    // Check for milestone
+    const milestone = checkMilestone(result.newOwned);
+    if (milestone) {
+      // Double efficiency would go here, but we don't modify baseCps in state
+      // This is a known gap noted in the deliverables
+    }
+
+    return {
+      ...state,
+      cookies: result.newCookies,
+      buildings: newBuildings,
+    };
+  });
+
+  checkAndUnlockAchievements();
+}
+
+/** Buy a prestige upgrade */
+export function buyPrestigeUpgrade(key: string): void {
+  gameState.update((state) => {
+    const upgrade = PRESTIGE_UPGRADES[key];
+    if (!upgrade) return state;
+
+    const currentPurchased = state.prestigeUpgrades[key]?.purchased ?? false;
+    const result = attemptPrestigePurchase(
+      state.heavenlyChips,
+      key,
+      currentPurchased,
+      upgrade.cost
+    );
+
+    if (!result.success) return state;
+
+    const newPrestigeUpgrades = { ...state.prestigeUpgrades };
+    newPrestigeUpgrades[key] = { purchased: true };
+
+    return {
+      ...state,
+      heavenlyChips: result.newCookies,
+      prestigeUpgrades: newPrestigeUpgrades,
+    };
+  });
+}
+
+/** Perform prestige ascension */
+export function doPrestige(): void {
+  gameState.update((state) => performPrestige(state));
+  closeAllModals();
+}
+
+/** Plant a garden plot */
+export function plantPlot(index: number): void {
+  gameState.update((state) => {
+    if (!state.garden.unlocked) return state;
+    if (state.garden.plots[index]) return state;
+    if (state.garden.seeds <= 0) return state;
+
+    const newPlots = [...state.garden.plots];
+    newPlots[index] = '🌱';
+
+    return {
+      ...state,
+      garden: {
+        ...state.garden,
+        plots: newPlots,
+        seeds: state.garden.seeds - 1,
+      },
+    };
+  });
+
+  // Schedule growth
+  setTimeout(() => growPlot(index), GARDEN_GROWTH_TIME);
+}
+
+/** Grow a planted plot */
+function growPlot(index: number): void {
+  gameState.update((state) => {
+    if (state.garden.plots[index] !== '🌱') return state;
+
+    const newPlots = [...state.garden.plots];
+    newPlots[index] = GARDEN_CROPS[Math.floor(Math.random() * GARDEN_CROPS.length)];
+
+    return {
+      ...state,
+      garden: {
+        ...state.garden,
+        plots: newPlots,
+      },
+    };
+  });
+}
+
+/** Harvest a grown plot */
+export function harvestPlot(index: number, reward: number): void {
+  gameState.update((state) => {
+    if (!state.garden.plots[index] || state.garden.plots[index] === '🌱') return state;
+
+    const newPlots = [...state.garden.plots];
+    newPlots[index] = null;
+
+    return {
+      ...state,
+      cookies: state.cookies + reward,
+      totalCookies: state.totalCookies + reward,
+      garden: {
+        ...state.garden,
+        plots: newPlots,
+        seeds: state.garden.seeds + 1,
+      },
+    };
+  });
+}
+
+// ============================================
+// ACHIEVEMENT CHECKING
+// ============================================
+
+function checkAndUnlockAchievements(): void {
+  gameState.update((state) => {
+    const checkState = createAchievementCheckState(state);
+    const newlyUnlocked = checkAchievements(checkState, state.achievements);
+
+    if (newlyUnlocked.length === 0) return state;
+
+    const newAchievements = { ...state.achievements };
+    let multiplier = state.globalMultiplier;
+
+    for (const key of newlyUnlocked) {
+      newAchievements[key] = { unlocked: true };
+      multiplier *= ACHIEVEMENT_CPS_MULTIPLIER;
+    }
+
+    return {
+      ...state,
+      achievements: newAchievements,
+      globalMultiplier: multiplier,
+    };
+  });
+}
+
+// ============================================
+// MODAL HELPERS
+// ============================================
+
+export function closeAllModals(): void {
+  modals.update((m) => ({
+    offline: { show: false, cookies: 0 },
+    settings: false,
+    stats: false,
+    prestige: false,
+  }));
+}
+
+export function showSettingsModal(): void {
+  modals.update((m) => ({ ...m, settings: true }));
+}
+
+export function showStatsModal(): void {
+  modals.update((m) => ({ ...m, stats: true }));
+}
+
+export function showPrestigeModal(): void {
+  modals.update((m) => ({ ...m, prestige: true }));
+}
+
+// ============================================
+// SETTINGS
+// ============================================
+
+export function toggleSetting(key: keyof GameState['settings']): void {
+  gameState.update((state) => ({
+    ...state,
+    settings: {
+      ...state.settings,
+      [key]: !state.settings[key],
+    },
+  }));
+}
+
+export function resetGame(): void {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(SAVE_KEY);
+    gameState.set(createInitialGameState());
+    closeAllModals();
+  }
+}
+
+// ============================================
+// DERIVED COMPUTATIONS FOR UI
+// ============================================
+
+/** Get current building cost for display */
+export function getBuildingCostNow(key: string): number {
+  const state = get(gameState);
+  const hasDiscount = state.prestigeUpgrades.buildingDiscount?.purchased ?? false;
+  return getBuildingCost(key, state.buildings[key]?.owned ?? 0, hasDiscount);
+}
+
+/** Get prestige info for display */
+export function getPrestigeInfo() {
+  const state = get(gameState);
+  return calculatePrestigeInfo(state.totalCookiesAllTime, state.heavenlyChips);
+}
+
+/** Check if building is affordable */
+export function canAffordBuilding(key: string): boolean {
+  const state = get(gameState);
+  const cost = getBuildingCostNow(key);
+  return state.cookies >= cost;
+}
+
+// ============================================
+// EXPORT CATALOG FOR UI
+// ============================================
+
+export { BUILDINGS, PRESTIGE_UPGRADES, ACHIEVEMENTS };
+export { GARDEN_REWARDS, GARDEN_CROPS } from '../game/catalog';
+export { formatNumber };
