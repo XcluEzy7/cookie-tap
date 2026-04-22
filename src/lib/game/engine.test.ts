@@ -245,4 +245,23 @@ describe('Prestige Reset', () => {
 
     expect(newState.cookies).toBe(100); // Starter pack bonus
   });
+
+  it('REGRESSION: should NOT refund spent chips on prestige', () => {
+    // The spent-chip refund bug:
+    // Player earned 100 trillion (10 chips total), spent 9 on upgrades
+    // current heavenlyChips = 1, totalHeavenlyChips = 10
+    // Player bakes enough to earn 1 more chip (total = 11)
+    // After prestige, spendable should be: current (1) + gain (1) = 2, NOT 11
+    const state = createInitialGameState();
+    state.totalCookiesAllTime = 121e12; // sqrt(121) = 11 total chips worth
+    state.heavenlyChips = 1; // Only 1 spendable (spent 9)
+    state.totalHeavenlyChips = 10; // Lifetime ledger (10 earned total)
+
+    const newState = performPrestige(state);
+
+    // gain = 11 - 10 = 1 new chip
+    // new spendable = 1 + 1 = 2
+    expect(newState.heavenlyChips).toBe(2); // NOT 11!
+    expect(newState.totalHeavenlyChips).toBe(11);
+  });
 });

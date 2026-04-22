@@ -182,13 +182,19 @@ export function buyPrestigeUpgrade(key: string): void {
     const newPrestigeUpgrades = { ...state.prestigeUpgrades };
     newPrestigeUpgrades[key] = { purchased: true };
 
-    // REGRESSION FIX: Immediately recompute multiplier on Heavenly Luck purchase
-    // Previous behavior: multiplier only updated on prestige reset
-    // New behavior: apply bonus immediately so CPS reflects upgrade
+    // REGRESSION FIX: Apply Heavenly Luck bonus correctly
+    // 1. Compute from post-purchase chip balance (result.newCookies), not pre-purchase
+    // 2. Preserve existing multiplier contributions (achievements, frenzy) by multiplying
     let newGlobalMultiplier = state.globalMultiplier;
     if (key === 'heavenlyLuck') {
       // Heavenly Luck: +2% CPS per heavenly chip
-      newGlobalMultiplier = 1 + state.heavenlyChips * 0.02;
+      // Compute bonus multiplier and apply to existing, don't replace
+      const postPurchaseChips = result.newCookies;
+      const heavenlyLuckMultiplier = 1 + postPurchaseChips * 0.02;
+      // Remove any pre-existing heavenly luck contribution by dividing it out
+      // (If heavenly luck wasn't purchased before, state.multiplier has no HL contribution)
+      // Since this is first purchase, just multiply the base multiplier by HL
+      newGlobalMultiplier = state.globalMultiplier * heavenlyLuckMultiplier;
     }
 
     return {

@@ -434,7 +434,10 @@ export function performPrestige(state: GameState): GameState {
   }
 
   const newTotalHeavenlyChips = prestigeInfo.totalChips;
-  const newHeavenlyChips = newTotalHeavenlyChips; // Current spendable chips = total after reset
+  // REGRESSION FIX: Preserve spent-chip delta instead of refunding all chips.
+  // Example: earned 10 total, spent 9, have 1 spendable, gain 1 new chip
+  // -> new spendable = 1 + 1 = 2, NOT 11 (which would refund the spent 9)
+  const newHeavenlyChips = state.heavenlyChips + gain;
   const hasStarterPack = state.prestigeUpgrades.starterCookies?.purchased ?? false;
   const hasHeavenlyLuck = state.prestigeUpgrades.heavenlyLuck?.purchased ?? false;
 
