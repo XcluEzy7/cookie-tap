@@ -2,6 +2,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { gameState, initGame, startGameLoop, stopGameLoop } from '$lib/stores/game';
   import { initClientRuntime } from '$lib/client-runtime';
+  import { startUINotifications, stopUINotifications } from '$lib/runtime/ui-notifications';
   import OfflineModal from '$lib/components/OfflineModal.svelte';
 
   let { children } = $props();
@@ -14,6 +15,9 @@
     
     // Start the game loop for CPS accumulation
     startGameLoop();
+
+    // Start UI notification systems (golden cookie spawner, news ticker)
+    startUINotifications();
 
     // Initialize PWA runtime (service worker, visibility hooks, autosave)
     // Note: Install prompt is handled by Footer component for single-ownership UI boundary
@@ -31,6 +35,7 @@
   onDestroy(() => {
     cleanup?.();
     stopGameLoop();
+    stopUINotifications();
   });
 </script>
 

@@ -1,26 +1,13 @@
 <script lang="ts">
-  let { title = '', description = '' }: { title?: string; description?: string } = $props();
+  import { milestoneBanner } from '$lib/runtime/ui-notifications';
 
-  let show = $state(false);
-  let milestoneTitle = $state('');
-  let milestoneDescription = $state('');
-  let timeout: ReturnType<typeof setTimeout>;
-
-  export function display(newTitle: string, newDesc: string) {
-    milestoneTitle = newTitle;
-    milestoneDescription = newDesc;
-    show = true;
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      show = false;
-    }, 3000);
-  }
+  let banner = $derived($milestoneBanner);
 </script>
 
-{#if show}
-  <div class="milestone-banner" class:show>
-    <h2>{milestoneTitle}</h2>
-    <p>{milestoneDescription}</p>
+{#if banner.visible}
+  <div class="milestone-banner show">
+    <h2>{banner.title}</h2>
+    <p>{banner.message}</p>
   </div>
 {/if}
 

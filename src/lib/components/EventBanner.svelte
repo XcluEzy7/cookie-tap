@@ -1,25 +1,12 @@
 <script lang="ts">
-  let { name = '', description = '' }: { name?: string; description?: string } = $props();
+  import { eventBanner } from '$lib/runtime/ui-notifications';
 
-  let show = $state(false);
-  let eventName = $state('');
-  let eventDescription = $state('');
-  let timeout: ReturnType<typeof setTimeout>;
-
-  export function display(newName: string, newDesc: string) {
-    eventName = newName;
-    eventDescription = newDesc;
-    show = true;
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      show = false;
-    }, 5000);
-  }
+  let banner = $derived($eventBanner);
 </script>
 
-{#if show}
-  <div class="event-banner" class:show>
-    <strong>{eventName}</strong>: {eventDescription}
+{#if banner.visible}
+  <div class="event-banner show">
+    <strong>{banner.title}</strong>: {banner.message}
   </div>
 {/if}
 

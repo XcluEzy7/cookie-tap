@@ -1,52 +1,20 @@
 <script lang="ts">
-  import { gameState, GOLDEN_SPAWN_COOLDOWN, GOLDEN_SPAWN_CHECK_INTERVAL } from '$lib/stores/game';
-  import { get } from 'svelte/store';
-  import { onMount, onDestroy } from 'svelte';
+  import { goldenCookie } from '$lib/runtime/ui-notifications';
+  import { handleGoldenCookieClick } from '$lib/stores/game';
 
-  let show = $state(false);
-  let position = $state({ x: 0, y: 0 });
-  let goldenInterval: ReturnType<typeof setInterval>;
-
-  function spawn() {
-    show = true;
-    position = {
-      x: 50 + Math.random() * (window.innerWidth - 150),
-      y: 100 + Math.random() * (window.innerHeight - 200),
-    };
-  }
+  let gc = $derived($goldenCookie);
 
   function handleClick() {
-    show = false;
-    // Dispatch custom event for parent to handle
-    window.dispatchEvent(new CustomEvent('golden-cookie-clicked'));
+    if (gc.visible) {
+      handleGoldenCookieClick();
+    }
   }
-
-  onMount(() => {
-    // Check for spawn periodically - store reference to use in interval
-    goldenInterval = setInterval(() => {
-      const state = get(gameState);
-      const hasBoost = state.prestigeUpgrades.goldenFrequenter?.purchased ?? false;
-      const chance = hasBoost ? 0.5 : 0.25;
-      const now = Date.now();
-
-      if (
-        Math.random() < chance &&
-        now - state.lastGoldenCookie > GOLDEN_SPAWN_COOLDOWN
-      ) {
-        spawn();
-      }
-    }, GOLDEN_SPAWN_CHECK_INTERVAL);
-  });
-
-  onDestroy(() => {
-    if (goldenInterval) clearInterval(goldenInterval);
-  });
 </script>
 
-{#if show}
+{#if gc.visible}
   <div
     class="golden-cookie"
-    style="left: {position.x}px; top: {position.y}px;"
+    style="left: {gc.x}px; top: {gc.y}px;"
     onclick={handleClick}
     role="button"
     tabindex="0"

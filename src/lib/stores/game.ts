@@ -51,6 +51,18 @@ import {
   COST_MULTIPLIER_DISCOUNTED,
 } from '../game/catalog';
 
+import {
+  generateGoldenEffect,
+  applyGoldenEffect,
+  pickRandomEvent,
+} from '../game/effects';
+
+import {
+  showAchievement,
+  showEventBanner,
+  showMilestone,
+} from '../runtime/ui-notifications';
+
 // ============================================
 // STORE TYPES
 // ============================================
@@ -413,6 +425,75 @@ export function canAffordBuilding(key: string): boolean {
   const state = get(gameState);
   const cost = getBuildingCostNow(key);
   return state.cookies >= cost;
+}
+
+// ============================================
+// GOLDEN COOKIE AND EVENTS
+// ============================================
+
+let goldenEffectTimeout: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * Handle golden cookie click.
+ * Called by UI when user clicks a golden cookie.
+ */
+export function handleGoldenCookieClick(): void {
+  const state = get(gameState);
+  const currentCps = getTotalCps(state);
+  const effect = generateGoldenEffect(currentCps);
+
+  // Update state with effect rewards
+  gameState.update((s) => {
+    const newState = applyGoldenEffect(s, effect);
+    return {
+      ...newState,
+      lastGoldenCookie: Date.now(),
+    };
+  });
+
+  // Show notification for effect
+  if (effect.cookieReward) {
+    showAchievement(effect.title, effect.description);
+  } else if (effect.type === 'frenzy' || effect.type === 'clickFrenzy') {
+    showEventBanner(effect.title, effect.description);
+
+    // Schedule removal after duration
+    if (effect.duration && effect.multiplier) {
+      if (goldenEffectTimeout !== null) clearTimeout(goldenEffectTimeout);
+      goldenEffectTimeout = setTimeout(() => {
+        gameState.update((s) => {
+          if (effect.type === 'frenzy') {
+            return { ...s, globalMultiplier: s.globalMultiplier / effect.multiplier! };
+          } else if (effect.type === 'clickFrenzy') {
+            return { ...s, clickMultiplier: s.clickMultiplier / effect.multiplier! };
+          }
+          return s;
+        });
+      }, effect.duration * 1000);
+    }
+  }
+
+  // Check achievements
+  checkAndUnlockAchievements();
+}
+
+/**
+ * Handle random event trigger.
+ * Called by runtime when a random event should occur.
+ */
+export function handleRandomEvent(): void {
+  const event = pickRandomEvent();
+
+  gameState.update((state) => event.apply(state));
+
+  showEventBanner(event.name, event.desc);
+
+  // Schedule removal if temporary
+  if (event.durationSec > 0 && event.remove) {
+    setTimeout(() => {
+      gameState.update((state) => event.remove!(state));
+    }, event.durationSec * 1000);
+  }
 }
 
 // ============================================

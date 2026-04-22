@@ -1,26 +1,13 @@
 <script lang="ts">
-  let { name = '', description = '' }: { name?: string; description?: string } = $props();
+  import { achievementNotification } from '$lib/runtime/ui-notifications';
 
-  let show = $state(false);
-  let achName = $state('');
-  let achDescription = $state('');
-  let timeout: ReturnType<typeof setTimeout>;
-
-  export function display(newName: string, newDesc: string) {
-    achName = newName;
-    achDescription = newDesc;
-    show = true;
-    if (timeout) clearTimeout(timeout);
-    timeout = setTimeout(() => {
-      show = false;
-    }, 4000);
-  }
+  let notification = $derived($achievementNotification);
 </script>
 
-{#if show}
-  <div class="achievement-popup" class:show>
+{#if notification.visible}
+  <div class="achievement-popup show">
     <h4>🏆 Achievement Unlocked!</h4>
-    <p>{achName}: {achDescription}</p>
+    <p>{notification.title}: {notification.message}</p>
   </div>
 {/if}
 

@@ -1,19 +1,7 @@
 <script lang="ts">
-  import { NEWS_HEADLINES, NEWS_ROTATION_INTERVAL } from '$lib/stores/game';
-  import { onMount, onDestroy } from 'svelte';
+  import { newsHeadline } from '$lib/runtime/ui-notifications';
 
-  let headline = $state(NEWS_HEADLINES[0]);
-  let rotationInterval: ReturnType<typeof setInterval>;
-
-  onMount(() => {
-    rotationInterval = setInterval(() => {
-      headline = NEWS_HEADLINES[Math.floor(Math.random() * NEWS_HEADLINES.length)];
-    }, NEWS_ROTATION_INTERVAL);
-  });
-
-  onDestroy(() => {
-    if (rotationInterval) clearInterval(rotationInterval);
-  });
+  let headline = $derived($newsHeadline);
 </script>
 
 <div id="news-ticker">
