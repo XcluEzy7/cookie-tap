@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8" />
+	<title>Redirecting...</title>
+	<script>
+		// GitHub Pages SPA fallback - redirect all paths to the base
+		const path = window.location.pathname;
+		const base = '/cookie-tap';
+		
+		// If we're at the root or a subpath that doesn't include the base, redirect
+		if (path === '/' || !path.startsWith(base)) {
+			window.location.replace(base + '/');
+		} else {
+			// Otherwise, load the app
+			window.location.replace(base + '/');
+		}
+	</script>
+</head>
+<body>
+	<p>Redirecting to <a href="/cookie-tap/">Cookie Clicker</a>...</p>
+</body>
+</html>
