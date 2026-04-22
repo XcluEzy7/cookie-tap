@@ -1,13 +1,12 @@
 <script lang="ts">
-  import { gameState, clickPower } from '$lib/stores/game';
-  import { formatNumber } from '$lib/game/engine';
+  import { gameState, clickPower, formatNumber } from '$lib/stores/game';
 
-  let floatingTexts: { id: number; text: string; x: number; y: number }[] = [];
-  let nextId = 0;
+  let floatingTexts: { id: number; text: string; x: number; y: number }[] = $state([]);
+  let nextId = $state(0);
   let cookieRef: HTMLDivElement;
-  let wobble = false;
+  let wobble = $state(false);
 
-  $: currentClickPower = $clickPower;
+  let currentClickPower = $derived($clickPower);
 
   function handleClick(event: MouseEvent | TouchEvent) {
     // Import clickCookie from store dynamically

@@ -1,10 +1,8 @@
 <script lang="ts">
-  import { base } from '$app/paths';
-  import { gameState, cps } from '$lib/stores/game';
-  import { formatNumber } from '$lib/game/engine';
+  import { gameState, cps, formatNumber } from '$lib/stores/game';
 
-  $: state = $gameState;
-  $: currentCps = $cps;
+  let state = $derived($gameState);
+  let currentCps = $derived($cps);
 </script>
 
 <svelte:head>

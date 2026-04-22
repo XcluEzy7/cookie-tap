@@ -1,17 +1,42 @@
 <script lang="ts">
-  let activeTab = 'buildings';
+  let activeTab = $state('buildings');
 
   // Import store subscriptions at module level
-  import { gameState, buyBuilding, canAffordBuilding, getBuildingCostNow, formatNumber } from '$lib/stores/game';
-  import { BUILDINGS, BUILDING_KEYS, PRESTIGE_UPGRADES } from '$lib/game/catalog';
+  import { 
+    gameState, 
+    buyBuilding, 
+    buyPrestigeUpgrade,
+    canAffordBuilding, 
+    getBuildingCostNow, 
+    formatNumber,
+    BUILDINGS,
+    BUILDING_KEYS,
+    PRESTIGE_UPGRADES,
+    plantPlot,
+    harvestPlot
+  } from '$lib/stores/game';
 
   // Subscribe to stores reactively
-  $: gameData = $gameState;
-  $: gardenUnlocked = gameData.cookies >= 1000 || gameData.garden.unlocked;
-  $: prestigeUnlocked = gameData.heavenlyChips > 0 || gameData.totalHeavenlyChips > 0;
+  let gameData = $derived($gameState);
+  let gardenUnlocked = $derived(gameData.cookies >= 1000 || gameData.garden.unlocked);
+  let prestigeUnlocked = $derived(gameData.heavenlyChips > 0 || gameData.totalHeavenlyChips > 0);
 
   function handleBuildingClick(key: string) {
     buyBuilding(key);
+  }
+  
+  function handlePlantPlot(index: number) {
+    plantPlot(index);
+  }
+  
+  function handleHarvestPlot(index: number, crop: string) {
+    const rewards: Record<string, number> = {
+      '🍪': 100,
+      '🍩': 500,
+      '🥠': 1000,
+      '⭐': 5000,
+    };
+    harvestPlot(index, rewards[crop] || 100);
   }
 </script>
 
@@ -107,19 +132,11 @@
               class="garden-plot"
               class:planted={plot !== null}
               onclick={() => {
-                import('$lib/stores/game').then(({ plantPlot, harvestPlot }) => {
-                  if (plot === null && gameData.garden.seeds > 0) {
-                    plantPlot(i);
-                  } else if (plot && plot !== '🌱') {
-                    const rewards: Record<string, number> = {
-                      '🍪': 100,
-                      '🍩': 500,
-                      '🥠': 1000,
-                      '⭐': 5000,
-                    };
-                    harvestPlot(i, rewards[plot] || 100);
-                  }
-                });
+                if (plot === null && gameData.garden.seeds > 0) {
+                  handlePlantPlot(i);
+                } else if (plot && plot !== '🌱') {
+                  handleHarvestPlot(i, plot);
+                }
               }}
             >
               {plot ?? (gameData.garden.seeds > 0 ? '🌱' : '')}
@@ -143,7 +160,7 @@
           class:purchased
           onclick={() => {
             if (!purchased) {
-              import('$lib/stores/game').then(({ buyPrestigeUpgrade }) => buyPrestigeUpgrade(key));
+              buyPrestigeUpgrade(key);
             }
           }}
           disabled={purchased}

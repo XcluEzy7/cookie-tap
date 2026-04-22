@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { NEWS_HEADLINES, NEWS_ROTATION_INTERVAL } from '$lib/game/catalog';
+  import { NEWS_HEADLINES, NEWS_ROTATION_INTERVAL } from '$lib/stores/game';
   import { onMount, onDestroy } from 'svelte';
 
   let headline = $state(NEWS_HEADLINES[0]);

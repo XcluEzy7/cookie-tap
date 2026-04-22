@@ -1,7 +1,6 @@
 <script lang="ts">
-  import { gameState } from '$lib/stores/game';
+  import { gameState, GOLDEN_SPAWN_COOLDOWN, GOLDEN_SPAWN_CHECK_INTERVAL } from '$lib/stores/game';
   import { get } from 'svelte/store';
-  import { GOLDEN_SPAWN_COOLDOWN, GOLDEN_SPAWN_CHECK_INTERVAL } from '$lib/game/catalog';
   import { onMount, onDestroy } from 'svelte';
 
   let show = $state(false);
