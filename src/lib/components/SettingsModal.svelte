@@ -1,29 +1,37 @@
 <script lang="ts">
-  import { gameState, toggleSetting, resetGame, closeAllModals } from '$lib/stores/game';
-  import { get } from 'svelte/store';
+  import { gameState, toggleSetting, resetGame } from '$lib/stores/game';
 
-  $: state = $gameState;
-  $: show = $state(false);
+  let gameData = $derived($gameState);
+  let showModal = $state(false);
 
   export function open() {
-    show = true;
+    showModal = true;
   }
 
   export function close() {
-    show = false;
+    showModal = false;
+  }
+
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      close();
+    }
   }
 </script>
 
-{#if show}
-  <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-  <div class="modal" onclick={close}>
-    <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+<svelte:window onkeydown={handleKeydown} />
+
+{#if showModal}
+  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions a11y_no_noninteractive_element_interactions a11y_interactive_supports_focus -->
+  <div class="modal" onclick={close} role="dialog" aria-modal="true" tabindex="-1">
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions a11y_no_noninteractive_element_interactions -->
+    <div class="modal-content" onclick={(e) => e.stopPropagation()} role="presentation">
       <h2>⚙️ Settings</h2>
 
       <label>
         <input
           type="checkbox"
-          checked={state.settings.soundEnabled}
+          checked={gameData.settings.soundEnabled}
           onchange={() => toggleSetting('soundEnabled')}
         />
         Sound Effects
@@ -32,7 +40,7 @@
       <label>
         <input
           type="checkbox"
-          checked={state.settings.particlesEnabled}
+          checked={gameData.settings.particlesEnabled}
           onchange={() => toggleSetting('particlesEnabled')}
         />
         Particle Effects
@@ -41,7 +49,7 @@
       <label>
         <input
           type="checkbox"
-          checked={state.settings.screenShakeEnabled}
+          checked={gameData.settings.screenShakeEnabled}
           onchange={() => toggleSetting('screenShakeEnabled')}
         />
         Screen Shake
@@ -50,7 +58,7 @@
       <label>
         <input
           type="checkbox"
-          checked={state.settings.darkMode}
+          checked={gameData.settings.darkMode}
           onchange={() => toggleSetting('darkMode')}
         />
         Dark Mode

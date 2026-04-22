@@ -2,8 +2,8 @@
   import { gameState, showSettingsModal, showStatsModal, showPrestigeModal, getPrestigeInfo } from '$lib/stores/game';
   import { onMount } from 'svelte';
 
-  $: state = $gameState;
-  $: prestigeInfo = getPrestigeInfo();
+  let gameData = $derived($gameState);
+  let prestigeInfo = $derived(getPrestigeInfo());
 
   let installPrompt: BeforeInstallPromptEvent | null = $state(null);
   let showInstall = $state(false);
@@ -11,6 +11,18 @@
   interface BeforeInstallPromptEvent extends Event {
     prompt(): Promise<void>;
     userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+  }
+
+  function handleInstall() {
+    if (installPrompt) {
+      installPrompt.prompt();
+      installPrompt.userChoice.then(({ outcome }) => {
+        if (outcome === 'accepted') {
+          showInstall = false;
+        }
+        installPrompt = null;
+      });
+    }
   }
 
   onMount(() => {
@@ -22,17 +34,6 @@
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   });
-
-  async function handleInstall() {
-    if (installPrompt) {
-      installPrompt.prompt();
-      const { outcome } = await installPrompt.userChoice;
-      if (outcome === 'accepted') {
-        showInstall = false;
-      }
-      installPrompt = null;
-    }
-  }
 </script>
 
 <footer>

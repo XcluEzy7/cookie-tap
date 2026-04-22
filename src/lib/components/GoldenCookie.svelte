@@ -1,7 +1,7 @@
 <script lang="ts">
   import { gameState } from '$lib/stores/game';
-  import { generateGoldenEffect } from '$lib/game/effects';
-  import { GOLDEN_SPAWN_COOLDOWN, GOLDEN_DESPAWN_TIME, GOLDEN_SPAWN_CHECK_INTERVAL } from '$lib/game/catalog';
+  import { get } from 'svelte/store';
+  import { GOLDEN_SPAWN_COOLDOWN, GOLDEN_SPAWN_CHECK_INTERVAL } from '$lib/game/catalog';
   import { onMount, onDestroy } from 'svelte';
 
   let show = $state(false);
@@ -18,33 +18,18 @@
 
   function handleClick() {
     show = false;
-    
-    // Get current CPS and apply effect
-    const cps = $gameState.buildings.cursor.owned * 0.1 + // Simplified, should use getTotalCps
-      $gameState.buildings.grandma?.owned * 1 || 0;
-    
-    // Import and apply golden effect
-    import('$lib/stores/game').then(({ gameState }) => {
-      const state = $gameState;
-      let cpsValue = 0;
-      for (const key in state.buildings) {
-        const building = state.buildings[key];
-        // This is simplified - in real use we'd calculate properly
-      }
-    });
-    
-    // Dispatch event for parent to handle
+    // Dispatch custom event for parent to handle
     window.dispatchEvent(new CustomEvent('golden-cookie-clicked'));
   }
 
   onMount(() => {
-    // Check for spawn periodically
+    // Check for spawn periodically - store reference to use in interval
     goldenInterval = setInterval(() => {
-      const state = $gameState;
+      const state = get(gameState);
       const hasBoost = state.prestigeUpgrades.goldenFrequenter?.purchased ?? false;
       const chance = hasBoost ? 0.5 : 0.25;
       const now = Date.now();
-      
+
       if (
         Math.random() < chance &&
         now - state.lastGoldenCookie > GOLDEN_SPAWN_COOLDOWN

@@ -1,12 +1,14 @@
 <script lang="ts">
   let { title = '', description = '' }: { title?: string; description?: string } = $props();
 
-  let show = false;
+  let show = $state(false);
+  let milestoneTitle = $state('');
+  let milestoneDescription = $state('');
   let timeout: ReturnType<typeof setTimeout>;
 
   export function display(newTitle: string, newDesc: string) {
-    title = newTitle;
-    description = newDesc;
+    milestoneTitle = newTitle;
+    milestoneDescription = newDesc;
     show = true;
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => {
@@ -17,8 +19,8 @@
 
 {#if show}
   <div class="milestone-banner" class:show>
-    <h2>{title}</h2>
-    <p>{description}</p>
+    <h2>{milestoneTitle}</h2>
+    <p>{milestoneDescription}</p>
   </div>
 {/if}
 

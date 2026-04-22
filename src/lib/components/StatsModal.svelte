@@ -1,62 +1,68 @@
 <script lang="ts">
   import { gameState, formatNumber } from '$lib/stores/game';
-  import { onMount } from 'svelte';
 
-  $: state = $gameState;
-  $: show = $state(false);
-
-  $: playTime = $state(0);
+  let gameData = $derived($gameState);
+  let showModal = $state(false);
+  let playTime = $state(0);
 
   export function open() {
-    show = true;
+    showModal = true;
     updatePlayTime();
   }
 
   export function close() {
-    show = false;
+    showModal = false;
   }
 
   function updatePlayTime() {
-    const elapsed = Math.floor((Date.now() - state.startTime) / 1000);
+    const elapsed = Math.floor((Date.now() - gameData.startTime) / 1000);
     playTime = elapsed;
   }
 
-  $: hours = Math.floor(playTime / 3600);
-  $: minutes = Math.floor((playTime % 3600) / 60);
+  let hours = $derived(Math.floor(playTime / 3600));
+  let minutes = $derived(Math.floor((playTime % 3600) / 60));
+  let unlockedCount = $derived(Object.values(gameData.achievements).filter((a) => a.unlocked).length);
+  let totalCount = $derived(Object.keys(gameData.achievements).length);
 
-  $: unlockedCount = Object.values(state.achievements).filter((a) => a.unlocked).length;
-  $: totalCount = Object.keys(state.achievements).length;
+  function handleKeydown(e: KeyboardEvent) {
+    if (e.key === 'Escape') {
+      close();
+    }
+  }
 </script>
 
-{#if show}
-  <!-- svelte-ignore a11y-click-events-have-key-events a11y-no-static-element-interactions -->
-  <div class="modal" onclick={close}>
-    <div class="modal-content" onclick={(e) => e.stopPropagation()}>
+<svelte:window onkeydown={handleKeydown} />
+
+{#if showModal}
+  <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions a11y_no_noninteractive_element_interactions a11y_interactive_supports_focus -->
+  <div class="modal" onclick={close} role="dialog" aria-modal="true" tabindex="-1">
+    <!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions a11y_no_noninteractive_element_interactions -->
+    <div class="modal-content" onclick={(e) => e.stopPropagation()} role="presentation">
       <h2>📊 Statistics</h2>
 
       <div class="stat-row">
         <strong>Total Cookies Baked (All Time):</strong>
-        {formatNumber(state.totalCookiesAllTime)}
+        {formatNumber(gameData.totalCookiesAllTime)}
       </div>
       <div class="stat-row">
         <strong>Session Cookies:</strong>
-        {formatNumber(state.totalCookies)}
+        {formatNumber(gameData.totalCookies)}
       </div>
       <div class="stat-row">
         <strong>Total Clicks:</strong>
-        {formatNumber(state.clicks)}
+        {formatNumber(gameData.clicks)}
       </div>
       <div class="stat-row">
         <strong>Golden Cookies Clicked:</strong>
-        {state.goldenCookiesClicked}
+        {gameData.goldenCookiesClicked}
       </div>
       <div class="stat-row">
         <strong>Prestige Resets:</strong>
-        {state.prestigeCount}
+        {gameData.prestigeCount}
       </div>
       <div class="stat-row">
         <strong>Heavenly Chips Earned:</strong>
-        {state.totalHeavenlyChips}
+        {gameData.totalHeavenlyChips}
       </div>
       <div class="stat-row">
         <strong>Play Time:</strong>

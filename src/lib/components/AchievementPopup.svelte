@@ -1,13 +1,14 @@
 <script lang="ts">
-  // Props using Svelte 5 runes
   let { name = '', description = '' }: { name?: string; description?: string } = $props();
 
-  let show = false;
+  let show = $state(false);
+  let achName = $state('');
+  let achDescription = $state('');
   let timeout: ReturnType<typeof setTimeout>;
 
   export function display(newName: string, newDesc: string) {
-    name = newName;
-    description = newDesc;
+    achName = newName;
+    achDescription = newDesc;
     show = true;
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => {
@@ -19,7 +20,7 @@
 {#if show}
   <div class="achievement-popup" class:show>
     <h4>🏆 Achievement Unlocked!</h4>
-    <p>{name}: {description}</p>
+    <p>{achName}: {achDescription}</p>
   </div>
 {/if}
 

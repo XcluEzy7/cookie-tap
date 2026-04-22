@@ -1,12 +1,14 @@
 <script lang="ts">
   let { name = '', description = '' }: { name?: string; description?: string } = $props();
 
-  let show = false;
+  let show = $state(false);
+  let eventName = $state('');
+  let eventDescription = $state('');
   let timeout: ReturnType<typeof setTimeout>;
 
   export function display(newName: string, newDesc: string) {
-    name = newName;
-    description = newDesc;
+    eventName = newName;
+    eventDescription = newDesc;
     show = true;
     if (timeout) clearTimeout(timeout);
     timeout = setTimeout(() => {
@@ -17,7 +19,7 @@
 
 {#if show}
   <div class="event-banner" class:show>
-    <strong>{name}</strong>: {description}
+    <strong>{eventName}</strong>: {eventDescription}
   </div>
 {/if}
 
